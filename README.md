@@ -26,7 +26,7 @@
 
 1. 克隆或下载本项目到你的服务器 / NAS 中：
    ```bash
-   git clone https://github.com/yourusername/home-inventory.git
+   git clone https://github.com/jxbwhe/home-inventory.git
    cd home-inventory
    ```
 

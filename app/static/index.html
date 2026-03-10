@@ -1,284 +1,1145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Inventory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>家庭消耗品管理</title>
+    <meta name="description" content="家庭消耗品库存管理工具，跟踪消耗品使用情况，提醒补货">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
     <style>
-        body { padding-bottom: 70px; background-color: #f8f9fa; }
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #fff; border-top: 1px solid #ddd; z-index: 1000; }
-        .nav-item { text-align: center; padding: 10px 0; color: #6c757d; text-decoration: none; font-size: 12px; flex: 1; }
-        .nav-item i { font-size: 24px; display: block; margin-bottom: 2px; }
-        .nav-item.active { color: #0d6efd; }
-        .card-img-top { height: 150px; object-fit: cover; }
-        .section { display: none; }
-        .section.active { display: block; }
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --gradient-start: #6366f1;
+            --gradient-end: #8b5cf6;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: #fff;
+            padding: 20px 16px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .app-header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .app-header .subtitle {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+            padding: 6px 0 env(safe-area-inset-bottom, 8px);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.65rem;
+            font-weight: 500;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .nav-btn i {
+            font-size: 1.4rem;
+            margin-bottom: 2px;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+        }
+
+        .nav-btn .badge-dot {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: none;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            padding: 16px;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dashboard Cards */
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:active {
+            transform: scale(0.97);
+        }
+
+        .stat-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 1.3rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Alert List */
+        .alert-item {
+            background: linear-gradient(135deg, #fef2f2, #fff1f2);
+            border: 1px solid var(--danger-light);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-item .alert-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--danger);
+            color: #fff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .alert-item .alert-info {
+            flex: 1;
+        }
+
+        .alert-item .alert-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .alert-item .alert-detail {
+            font-size: 0.75rem;
+            color: var(--danger);
+            margin-top: 2px;
+        }
+
+        /* Item Cards */
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-card:active {
+            transform: scale(0.98);
+        }
+
+        .item-card.low-stock {
+            border: 2px solid var(--danger);
+        }
+
+        .item-card.low-stock::before {
+            content: '库存不足';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .item-card .card-img-wrap {
+            position: relative;
+            height: 120px;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .item-card .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-card .card-img-wrap .no-img {
+            color: var(--primary-light);
+            font-size: 2.5rem;
+        }
+
+        .item-card .card-content {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-card .item-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-card .item-info {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            flex: 1;
+        }
+
+        .item-card .item-info .qty-low {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .item-card .item-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .item-card .item-actions .btn {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.68rem;
+            padding: 5px 4px;
+            border-radius: 8px;
+        }
+
+        /* Search */
+        .search-bar {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            background: var(--card-bg);
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Forms */
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Buttons */
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-primary-gradient:hover {
+            color: #fff;
+        }
+
+        .btn-primary-gradient:active {
+            transform: scale(0.97);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-danger-gradient {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: #fff;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: #fff;
+            border: none;
+            padding: 16px 20px;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        /* Purchase History */
+        .purchase-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .purchase-item:last-child {
+            border-bottom: none;
+        }
+
+        .purchase-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .purchase-item .purchase-info {
+            flex: 1;
+        }
+
+        .purchase-item .purchase-date {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .purchase-item .purchase-detail {
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* Section Title */
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title h5 {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+
+        .custom-toast {
+            background: var(--text);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container mt-4">
-    <h3 class="mb-4 text-center">Home Inventory</h3>
+    <!-- Header -->
+    <div class="app-header">
+        <h1><i class="bi bi-house-heart"></i> 家庭消耗品管理</h1>
+        <div class="subtitle">跟踪消耗 · 及时补货</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
 
     <!-- Dashboard Section -->
     <div id="dashboard-section" class="section active">
-        <div class="row g-3 mb-4">
-            <div class="col-6">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title text-muted">Items</h6>
-                        <h3 id="dash-items">0</h3>
+        <div class="row g-3 mb-3">
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e0e7ff; color: var(--primary);">
+                        <i class="bi bi-box-seam"></i>
                     </div>
+                    <div class="stat-value" id="dash-items">0</div>
+                    <div class="stat-label">物品总数</div>
                 </div>
             </div>
-            <div class="col-6">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title text-muted">Est. Value</h6>
-                        <h3 id="dash-value">$0</h3>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #d1fae5; color: var(--success);">
+                        <i class="bi bi-currency-yen"></i>
                     </div>
+                    <div class="stat-value" id="dash-value">0</div>
+                    <div class="stat-label">库存价值</div>
                 </div>
             </div>
-            <div class="col-12">
-                <div class="card text-center shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title text-muted">Daily Cost of Consumables</h6>
-                        <h2 id="dash-daily-cost" class="text-danger">$0.00</h2>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fef3c7; color: var(--warning);">
+                        <i class="bi bi-graph-down-arrow"></i>
                     </div>
+                    <div class="stat-value" id="dash-daily-cost">0</div>
+                    <div class="stat-label">日均消耗</div>
                 </div>
             </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div id="low-stock-panel" style="display:none;">
+            <div class="section-title">
+                <h5><i class="bi bi-exclamation-triangle-fill" style="color:var(--danger);"></i> 补货提醒</h5>
+                <button class="btn btn-sm btn-danger-gradient" onclick="manualCheckInventory()" id="push-btn">
+                    <i class="bi bi-bell"></i> 推送通知
+                </button>
+            </div>
+            <div id="low-stock-list"></div>
         </div>
     </div>
 
     <!-- Items Section -->
     <div id="items-section" class="section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>All Items</h5>
-            <button class="btn btn-sm btn-primary" onclick="showSection('add-item-section')"><i class="bi bi-plus"></i> New</button>
+        <div class="section-title">
+            <h5>全部物品</h5>
+            <button class="btn btn-sm btn-primary-gradient" onclick="showSection('add-item-section')">
+                <i class="bi bi-plus-lg"></i> 添加
+            </button>
         </div>
-        <div class="row g-3" id="items-list">
-            <!-- Items populated here -->
+        <div class="search-bar">
+            <i class="bi bi-search"></i>
+            <input type="text" id="search-input" placeholder="搜索物品名称..." oninput="filterItems()">
+        </div>
+        <div class="row g-3" id="items-list"></div>
+        <div id="items-empty" style="display:none; text-align:center; padding:40px 0; color:var(--text-muted);">
+            <i class="bi bi-inbox" style="font-size:3rem; display:block; margin-bottom:12px;"></i>
+            <p>还没有物品，点击上方按钮添加</p>
         </div>
     </div>
 
     <!-- Add Item Section -->
     <div id="add-item-section" class="section">
-        <h5>Add New Item</h5>
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form id="add-item-form" class="mt-2">
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="name" required>
+        <div class="section-title">
+            <h5>添加物品</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="showSection('items-section')">
+                <i class="bi bi-arrow-left"></i> 返回
+            </button>
+        </div>
+        <div class="form-card">
+            <form id="add-item-form">
+                <div class="mb-3">
+                    <label class="form-label">物品名称 <span style="color:var(--danger);">*</span></label>
+                    <input type="text" class="form-control" name="name" required placeholder="如：抽纸、洗衣液...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">描述</label>
+                    <textarea class="form-control" name="description" rows="2" placeholder="可选，如品牌、规格等"></textarea>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">单位</label>
+                        <input type="text" class="form-control" name="unit" value="个" placeholder="个/包/瓶/kg">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    <div class="col-6">
+                        <label class="form-label">最低库存阈值</label>
+                        <input type="number" step="0.1" class="form-control" name="min_quantity" value="0"
+                            placeholder="低于此值告警">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unit (e.g., pcs, kg, bottles)</label>
-                        <input type="text" class="form-control" name="unit" value="pcs" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Image</label>
-                        <input type="file" class="form-control" name="image" accept="image/*">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Save Item</button>
-                </form>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">物品图片</label>
+                    <input type="file" class="form-control" name="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary-gradient w-100">
+                    <i class="bi bi-plus-circle"></i> 保存物品
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showSection('dashboard-section', this)" id="nav-dashboard">
+            <i class="bi bi-house-door-fill"></i>
+            <span>首页</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('items-section', this)" id="nav-items">
+            <i class="bi bi-grid-fill"></i>
+            <span>物品</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('add-item-section', this)" id="nav-add">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>添加</span>
+        </button>
+    </div>
+
+    <!-- Purchase Modal -->
+    <div class="modal fade" id="purchaseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-cart-plus"></i> 记录购买</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="purchase-form">
+                        <input type="hidden" id="purchase-item-id">
+                        <div class="mb-3">
+                            <label class="form-label">购买数量</label>
+                            <input type="number" step="0.01" class="form-control" id="purchase-qty" required
+                                placeholder="购买了多少">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">总价 (¥)</label>
+                            <input type="number" step="0.01" class="form-control" id="purchase-price" required
+                                placeholder="花了多少钱">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">购买凭证（图片）</label>
+                            <input type="file" class="form-control" id="purchase-image" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100">
+                            <i class="bi bi-check-lg"></i> 保存购买记录
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bottom Navigation -->
-<div class="bottom-nav d-flex justify-content-around">
-    <a href="#" class="nav-item active" onclick="showSection('dashboard-section', this)">
-        <i class="bi bi-house-door"></i>
-        Dashboard
-    </a>
-    <a href="#" class="nav-item" onclick="showSection('items-section', this)">
-        <i class="bi bi-box-seam"></i>
-        Items
-    </a>
-    <a href="#" class="nav-item" onclick="showSection('add-item-section', this)">
-        <i class="bi bi-plus-circle"></i>
-        Add
-    </a>
-</div>
-
-<!-- Purchase Modal -->
-<div class="modal fade" id="purchaseModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Record Purchase</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="purchase-form">
-                    <input type="hidden" id="purchase-item-id">
-                    <div class="mb-3">
-                        <label class="form-label">Quantity Bought</label>
-                        <input type="number" step="0.01" class="form-control" id="purchase-qty" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Total Price</label>
-                        <input type="number" step="0.01" class="form-control" id="purchase-price" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Save Purchase</button>
-                </form>
+    <!-- Usage Modal -->
+    <div class="modal fade" id="usageModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-dash-circle"></i> 记录使用</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="usage-form">
+                        <input type="hidden" id="usage-item-id">
+                        <div class="mb-3">
+                            <label class="form-label">使用数量</label>
+                            <input type="number" step="0.01" class="form-control" id="usage-qty" required
+                                placeholder="使用了多少">
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100">
+                            <i class="bi bi-check-lg"></i> 保存使用记录
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Usage Modal -->
-<div class="modal fade" id="usageModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Record Usage</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="usage-form">
-                    <input type="hidden" id="usage-item-id">
-                    <div class="mb-3">
-                        <label class="form-label">Quantity Used</label>
-                        <input type="number" step="0.01" class="form-control" id="usage-qty" required>
-                    </div>
-                    <button type="submit" class="btn btn-warning w-100">Save Usage</button>
-                </form>
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> 编辑物品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" id="edit-item-id">
+                        <div class="mb-3">
+                            <label class="form-label">物品名称</label>
+                            <input type="text" class="form-control" id="edit-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">描述</label>
+                            <textarea class="form-control" id="edit-description" rows="2"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">单位</label>
+                                <input type="text" class="form-control" id="edit-unit">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">当前库存</label>
+                                <input type="number" step="0.01" class="form-control" id="edit-quantity">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">最低库存阈值</label>
+                            <input type="number" step="0.1" class="form-control" id="edit-min-quantity"
+                                placeholder="低于此值告警">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">更换图片</label>
+                            <input type="file" class="form-control" id="edit-image" accept="image/*">
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary-gradient flex-grow-1">
+                                <i class="bi bi-check-lg"></i> 保存修改
+                            </button>
+                            <button type="button" class="btn btn-danger-gradient" onclick="deleteItem()"
+                                style="padding: 12px 20px;">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const API_URL = '/api';
+    <!-- Purchase History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-clock-history"></i> 购买记录</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" id="history-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function showSection(sectionId, navElement = null) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(sectionId).classList.add('active');
-        
-        if (navElement) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            navElement.classList.add('active');
-        } else {
-            // Match nav active state if called programmatically
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(sectionId === 'dashboard-section') document.querySelectorAll('.nav-item')[0].classList.add('active');
-            if(sectionId === 'items-section') document.querySelectorAll('.nav-item')[1].classList.add('active');
-            if(sectionId === 'add-item-section') document.querySelectorAll('.nav-item')[2].classList.add('active');
+    <!-- Image Preview Modal -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="background:transparent; border:none; box-shadow:none;">
+                <div class="text-end mb-2">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <img id="preview-img" src="" style="width:100%; border-radius:12px;" alt="预览">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = '/api';
+        let allItems = [];
+
+        // ---- Toast Notification ----
+        function showToast(msg) {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'custom-toast';
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
         }
 
-        if (sectionId === 'dashboard-section') loadDashboard();
-        if (sectionId === 'items-section') loadItems();
-    }
+        // ---- Navigation ----
+        function showSection(sectionId, navElement = null) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
 
-    async function loadDashboard() {
-        const res = await fetch(`${API_URL}/dashboard`);
-        const data = await res.json();
-        document.getElementById('dash-items').innerText = data.total_items;
-        document.getElementById('dash-value').innerText = `$${data.total_value}`;
-        document.getElementById('dash-daily-cost').innerText = `$${data.total_daily_cost}`;
-    }
+            document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+            if (navElement) {
+                navElement.classList.add('active');
+            } else {
+                const mapping = {
+                    'dashboard-section': 'nav-dashboard',
+                    'items-section': 'nav-items',
+                    'add-item-section': 'nav-add',
+                };
+                const navId = mapping[sectionId];
+                if (navId) document.getElementById(navId).classList.add('active');
+            }
 
-    async function loadItems() {
-        const res = await fetch(`${API_URL}/items`);
-        const items = await res.json();
-        const list = document.getElementById('items-list');
-        list.innerHTML = '';
-        
-        items.forEach(item => {
-            const img = item.image_url ? `<img src="${item.image_url}" class="card-img-top">` : `<div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white"><i class="bi bi-image" style="font-size: 3rem;"></i></div>`;
-            
-            list.innerHTML += `
-                <div class="col-6 col-md-4">
-                    <div class="card shadow-sm h-100">
-                        ${img}
-                        <div class="card-body p-2 d-flex flex-column">
-                            <h6 class="card-title text-truncate mb-1">${item.name}</h6>
-                            <p class="card-text small text-muted mb-2 flex-grow-1">Qty: ${item.current_quantity} ${item.unit}<br>Cost: $${item.daily_cost}/day</p>
-                            <div class="d-flex justify-content-between">
-                                <button class="btn btn-sm btn-outline-success" onclick="openPurchaseModal(${item.id})" title="Add Purchase"><i class="bi bi-cart-plus"></i> Buy</button>
-                                <button class="btn btn-sm btn-outline-warning" onclick="openUsageModal(${item.id})" title="Use Item"><i class="bi bi-dash-circle"></i> Use</button>
-                            </div>
+            if (sectionId === 'dashboard-section') loadDashboard();
+            if (sectionId === 'items-section') loadItems();
+        }
+
+        // ---- Dashboard ----
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_URL}/dashboard`);
+                const data = await res.json();
+                document.getElementById('dash-items').textContent = data.total_items;
+                document.getElementById('dash-value').textContent = `¥${data.total_value}`;
+                document.getElementById('dash-daily-cost').textContent = `¥${data.total_daily_cost}`;
+
+                const panel = document.getElementById('low-stock-panel');
+                const list = document.getElementById('low-stock-list');
+                const badgeDot = document.querySelector('#nav-dashboard .badge-dot');
+
+                if (data.low_stock_items && data.low_stock_items.length > 0) {
+                    panel.style.display = 'block';
+                    if (badgeDot) badgeDot.style.display = 'block';
+                    list.innerHTML = data.low_stock_items.map(item => `
+                <div class="alert-item">
+                    <div class="alert-icon"><i class="bi bi-exclamation-lg"></i></div>
+                    <div class="alert-info">
+                        <div class="alert-name">${item.name}</div>
+                        <div class="alert-detail">
+                            剩余 ${item.current_quantity} ${item.unit} / 阈值 ${item.min_quantity} ${item.unit}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+                } else {
+                    panel.style.display = 'none';
+                    if (badgeDot) badgeDot.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Load dashboard error:', e);
+            }
+        }
+
+        // ---- Items ----
+        async function loadItems() {
+            try {
+                const res = await fetch(`${API_URL}/items`);
+                allItems = await res.json();
+                renderItems(allItems);
+            } catch (e) {
+                console.error('Load items error:', e);
+            }
+        }
+
+        function filterItems() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allItems.filter(item => item.name.toLowerCase().includes(keyword));
+            renderItems(filtered);
+        }
+
+        function renderItems(items) {
+            const list = document.getElementById('items-list');
+            const empty = document.getElementById('items-empty');
+
+            if (items.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            list.innerHTML = items.map(item => {
+                const img = item.image_url
+                    ? `<img src="${item.image_url}" alt="${item.name}">`
+                    : `<div class="no-img"><i class="bi bi-image"></i></div>`;
+
+                const qtyClass = item.is_low ? 'qty-low' : '';
+                const cardClass = item.is_low ? 'item-card low-stock' : 'item-card';
+
+                return `
+        <div class="col-6 col-md-4">
+            <div class="${cardClass}">
+                <div class="card-img-wrap" onclick="previewImage('${item.image_url || ''}')">${img}</div>
+                <div class="card-content">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-info">
+                        <span class="${qtyClass}">库存：${item.current_quantity} ${item.unit}</span><br>
+                        单价：¥${item.latest_unit_price}<br>
+                        ${item.last_purchase_date ? '上次购买：' + item.last_purchase_date.split(' ')[0] : '暂无购买记录'}
+                        <br>
+                        ${item.last_usage_date ? '上次使用：' + item.last_usage_date.split(' ')[0] : '暂无使用记录'}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-outline-success btn-sm" onclick="openPurchaseModal(${item.id})" title="购买">
+                            <i class="bi bi-cart-plus"></i>
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="openUsageModal(${item.id})" title="使用">
+                            <i class="bi bi-dash-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${item.id})" title="编辑">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="openHistoryModal(${item.id})" title="购买记录">
+                            <i class="bi bi-clock-history"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+        // ---- Image Preview ----
+        const imagePreviewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        function previewImage(url) {
+            if (!url) return;
+            document.getElementById('preview-img').src = url;
+            imagePreviewModal.show();
+        }
+
+        // ---- Add Item ----
+        document.getElementById('add-item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            try {
+                const res = await fetch(`${API_URL}/items`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    e.target.reset();
+                    showToast('✅ 物品添加成功');
+                    showSection('items-section');
+                } else {
+                    showToast('❌ 添加失败');
+                }
+            } catch (err) {
+                showToast('❌ 网络错误');
+            }
+        });
+
+        // ---- Purchase ----
+        const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
+        function openPurchaseModal(itemId) {
+            document.getElementById('purchase-item-id').value = itemId;
+            document.getElementById('purchase-form').reset();
+            document.getElementById('purchase-item-id').value = itemId;
+            purchaseModal.show();
+        }
+
+        document.getElementById('purchase-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('item_id', document.getElementById('purchase-item-id').value);
+            formData.append('quantity', document.getElementById('purchase-qty').value);
+            formData.append('price', document.getElementById('purchase-price').value);
+            const imageFile = document.getElementById('purchase-image').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                const res = await fetch(`${API_URL}/purchases`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    purchaseModal.hide();
+                    showToast('✅ 购买记录已添加');
+                    loadItems();
+                } else {
+                    showToast('❌ 添加失败');
+                }
+            } catch (err) {
+                showToast('❌ 网络错误');
+            }
+        });
+
+        // ---- Usage ----
+        const usageModal = new bootstrap.Modal(document.getElementById('usageModal'));
+        function openUsageModal(itemId) {
+            document.getElementById('usage-item-id').value = itemId;
+            document.getElementById('usage-form').reset();
+            document.getElementById('usage-item-id').value = itemId;
+            usageModal.show();
+        }
+
+        document.getElementById('usage-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('item_id', document.getElementById('usage-item-id').value);
+            formData.append('quantity', document.getElementById('usage-qty').value);
+
+            try {
+                const res = await fetch(`${API_URL}/usages`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    usageModal.hide();
+                    showToast('✅ 使用记录已添加');
+                    loadItems();
+                    loadDashboard();
+                } else {
+                    const data = await res.json();
+                    showToast(`❌ ${data.detail || '操作失败'}`);
+                }
+            } catch (err) {
+                showToast('❌ 网络错误');
+            }
+        });
+
+        // ---- Edit ----
+        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        let currentEditId = null;
+
+        async function openEditModal(itemId) {
+            currentEditId = itemId;
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}`);
+                const item = await res.json();
+                document.getElementById('edit-item-id').value = item.id;
+                document.getElementById('edit-name').value = item.name;
+                document.getElementById('edit-description').value = item.description || '';
+                document.getElementById('edit-unit').value = item.unit;
+                document.getElementById('edit-quantity').value = item.current_quantity;
+                document.getElementById('edit-min-quantity').value = item.min_quantity;
+                editModal.show();
+            } catch (err) {
+                showToast('❌ 获取物品信息失败');
+            }
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('edit-name').value);
+            formData.append('description', document.getElementById('edit-description').value);
+            formData.append('unit', document.getElementById('edit-unit').value);
+            formData.append('current_quantity', document.getElementById('edit-quantity').value);
+            formData.append('min_quantity', document.getElementById('edit-min-quantity').value);
+            const imageFile = document.getElementById('edit-image').files[0];
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                const res = await fetch(`${API_URL}/items/${currentEditId}`, { method: 'PUT', body: formData });
+                if (res.ok) {
+                    editModal.hide();
+                    showToast('✅ 物品已更新');
+                    loadItems();
+                    loadDashboard();
+                } else {
+                    showToast('❌ 更新失败');
+                }
+            } catch (err) {
+                showToast('❌ 网络错误');
+            }
+        });
+
+        async function deleteItem() {
+            if (!confirm('确定要删除此物品吗？此操作不可恢复。')) return;
+            try {
+                const res = await fetch(`${API_URL}/items/${currentEditId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    editModal.hide();
+                    showToast('✅ 物品已删除');
+                    loadItems();
+                    loadDashboard();
+                } else {
+                    showToast('❌ 删除失败');
+                }
+            } catch (err) {
+                showToast('❌ 网络错误');
+            }
+        }
+
+        // ---- Purchase History ----
+        const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+
+        async function openHistoryModal(itemId) {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
+            historyModal.show();
+
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}/purchases`);
+                const purchases = await res.json();
+
+                if (purchases.length === 0) {
+                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无购买记录</div>';
+                    return;
+                }
+
+                list.innerHTML = purchases.map(p => {
+                    const imgHtml = p.image_url
+                        ? `<img src="${p.image_url}" alt="购买凭证" onclick="previewImage('${p.image_url}')" style="cursor:pointer;">`
+                        : '';
+                    return `
+                <div class="purchase-item">
+                    ${imgHtml}
+                    <div class="purchase-info">
+                        <div class="purchase-date">${p.date}</div>
+                        <div class="purchase-detail">
+                            数量：${p.quantity} &nbsp;|&nbsp; 总价：¥${p.price} &nbsp;|&nbsp; 单价：¥${p.unit_price}
                         </div>
                     </div>
                 </div>
             `;
-        });
-    }
-
-    document.getElementById('add-item-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        await fetch(`${API_URL}/items`, {
-            method: 'POST',
-            body: formData
-        });
-        e.target.reset();
-        alert('Item added successfully!');
-        showSection('items-section');
-    });
-
-    const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
-    const usageModal = new bootstrap.Modal(document.getElementById('usageModal'));
-
-    function openPurchaseModal(itemId) {
-        document.getElementById('purchase-item-id').value = itemId;
-        purchaseModal.show();
-    }
-
-    function openUsageModal(itemId) {
-        document.getElementById('usage-item-id').value = itemId;
-        usageModal.show();
-    }
-
-    document.getElementById('purchase-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const item_id = document.getElementById('purchase-item-id').value;
-        const quantity = document.getElementById('purchase-qty').value;
-        const price = document.getElementById('purchase-price').value;
-        
-        await fetch(`${API_URL}/purchases`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ item_id: parseInt(item_id), quantity: parseFloat(quantity), price: parseFloat(price) })
-        });
-        
-        purchaseModal.hide();
-        e.target.reset();
-        loadItems();
-    });
-
-    document.getElementById('usage-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const item_id = document.getElementById('usage-item-id').value;
-        const quantity = document.getElementById('usage-qty').value;
-        
-        const res = await fetch(`${API_URL}/usages`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ item_id: parseInt(item_id), quantity: parseFloat(quantity) })
-        });
-        
-        if (!res.ok) {
-            const data = await res.json();
-            alert(data.detail || 'Error recording usage');
-        } else {
-            usageModal.hide();
-            e.target.reset();
-            loadItems();
+                }).join('');
+            } catch (err) {
+                list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--danger);">加载失败</div>';
+            }
         }
-    });
 
-    // Init
-    loadDashboard();
-</script>
+        // ---- Manual Inventory Check ----
+        async function manualCheckInventory() {
+            const btn = document.getElementById('push-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> 发送中...';
+            try {
+                const res = await fetch(`${API_URL}/check-inventory`, { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message);
+            } catch (err) {
+                showToast('❌ 推送失败');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-bell"></i> 推送通知';
+            }
+        }
+
+        // ---- Init ----
+        loadDashboard();
+    </script>
 </body>
+
 </html>
