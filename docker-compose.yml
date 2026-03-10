@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  inventory-app:
+    build: .
+    container_name: home-inventory
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
