@@ -521,9 +521,15 @@
 <body>
 
     <!-- Header -->
-    <div class="app-header">
+        <div class="app-header">
         <h1><i class="bi bi-house-heart"></i> 家庭消耗品管理</h1>
         <div class="subtitle">跟踪消耗 · 及时补货</div>
+        <div class="mt-2 text-center">
+            <select id="header-family-select" class="form-select form-select-sm" style="background-color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; display: inline-block; width: auto; min-width: 120px;" onchange="onFamilyChange()">
+                <option value="0" style="color: black;">全部家庭</option>
+            </select>
+        </div>
+    </div>
     </div>
 
     <!-- Toast Container -->
@@ -610,6 +616,12 @@
                     <label class="form-label">描述</label>
                     <textarea class="form-control" name="description" rows="2" placeholder="可选，如品牌、规格等"></textarea>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">所属家庭</label>
+                    <select class="form-select" name="family_id" id="add-family-select">
+                        <option value="">未分组</option>
+                    </select>
+                </div>
                 <div class="row mb-3">
                     <div class="col-6">
                         <label class="form-label">单位</label>
@@ -632,6 +644,53 @@
         </div>
     </div>
 
+    <!-- Settings Section -->
+    <div id="settings-section" class="section">
+        <div class="section-title">
+            <h5>系统设置</h5>
+        </div>
+        
+        <!-- Families Management -->
+        <div class="form-card mb-3">
+            <h6 class="mb-3"><i class="bi bi-people"></i> 家庭管理</h6>
+            <div id="settings-family-list" class="mb-3"></div>
+            <form id="add-family-form" class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" id="new-family-name" required placeholder="新增家庭名称(如：公司/新家)">
+                <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i></button>
+            </form>
+        </div>
+
+        <!-- Notify Channels Management -->
+        <div class="form-card mb-3">
+            <h6 class="mb-3"><i class="bi bi-bell"></i> 通知渠道管理</h6>
+            <div id="settings-channel-list" class="mb-3"></div>
+            <form id="add-channel-form" class="row g-2">
+                <div class="col-12">
+                    <input type="text" class="form-control form-control-sm" id="channel-name" required placeholder="渠道名称(如：PushPlus)">
+                </div>
+                <div class="col-10">
+                    <input type="text" class="form-control form-control-sm" id="channel-token" required placeholder="Token">
+                </div>
+                <div class="col-2">
+                    <button type="submit" class="btn btn-sm btn-primary-gradient w-100"><i class="bi bi-plus"></i></button>
+                </div>
+            </form>
+        </div>
+
+        <!-- API Token Management -->
+        <div class="form-card mb-3">
+            <h6 class="mb-3"><i class="bi bi-key"></i> 开放 API Token</h6>
+            <div id="settings-token-list" class="mb-3"></div>
+            <form id="add-token-form" class="d-flex gap-2 mb-3">
+                <input type="text" class="form-control form-control-sm" id="token-name" required placeholder="Token 用途说明">
+                <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i> 创建</button>
+            </form>
+            <div class="text-center">
+                <a href="/api_docs.html" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-code"></i> 查看 API 文档</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <button class="nav-btn active" onclick="showSection('dashboard-section', this)" id="nav-dashboard">
@@ -645,6 +704,10 @@
         <button class="nav-btn" onclick="showSection('add-item-section', this)" id="nav-add">
             <i class="bi bi-plus-circle-fill"></i>
             <span>添加</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('settings-section', this)" id="nav-settings">
+            <i class="bi bi-gear-fill"></i>
+            <span>设置</span>
         </button>
     </div>
 
@@ -726,6 +789,12 @@
                             <label class="form-label">描述</label>
                             <textarea class="form-control" id="edit-description" rows="2"></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">所属家庭</label>
+                            <select class="form-select" id="edit-family-select">
+                                <option value="">未分组</option>
+                            </select>
+                        </div>
                         <div class="row mb-3">
                             <div class="col-6">
                                 <label class="form-label">单位</label>
@@ -775,6 +844,21 @@
         </div>
     </div>
 
+    <!-- Usage History Modal -->
+    <div class="modal fade" id="usageHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-card-list"></i> 使用记录</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" id="usage-history-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Image Preview Modal -->
     <div class="modal fade" id="imagePreviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -791,6 +875,7 @@
     <script>
         const API_URL = '/api';
         let allItems = [];
+        let currentFamilyId = 0;
 
         // ---- Toast Notification ----
         function showToast(msg) {
@@ -802,6 +887,253 @@
             setTimeout(() => t.remove(), 2500);
         }
 
+
+        // JS features extension
+        async function loadFamilies() {
+            try {
+                const res = await fetch(`${API_URL}/families`);
+                const families = await res.json();
+                
+                // Header Select
+                const hSelect = document.getElementById('header-family-select');
+                if (hSelect) {
+                    hSelect.innerHTML = '<option value="0" style="color: black;">全部家庭</option>';
+                    families.forEach(f => {
+                        hSelect.innerHTML += `<option value="${f.id}" style="color: black;" ${currentFamilyId === f.id ? 'selected':''}>${f.name}</option>`;
+                    });
+                }
+                
+                // Add/Edit Selects
+                const aSelect = document.getElementById('add-family-select');
+                const eSelect = document.getElementById('edit-family-select');
+                if (aSelect) {
+                    aSelect.innerHTML = '<option value="">未分组</option>';
+                    families.forEach(f => aSelect.innerHTML += `<option value="${f.id}">${f.name}</option>`);
+                }
+                if (eSelect) {
+                    eSelect.innerHTML = '<option value="">未分组</option>';
+                    families.forEach(f => eSelect.innerHTML += `<option value="${f.id}">${f.name}</option>`);
+                }
+                
+                // Settings List
+                const sList = document.getElementById('settings-family-list');
+                if (sList) {
+                    sList.innerHTML = '';
+                    families.forEach(f => {
+                        sList.innerHTML += `
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                <div>
+                                    <span class="fw-bold">${f.name}</span>
+                                    <small class="text-muted ms-2">${f.item_count} 物品</small>
+                                </div>
+                                <button class="btn btn-sm text-danger" onclick="deleteFamily(${f.id})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error('Load families error:', e);
+            }
+        }
+        
+        function onFamilyChange() {
+            currentFamilyId = parseInt(document.getElementById('header-family-select').value);
+            loadDashboard();
+            loadItems();
+        }
+        
+        // Family forms
+        if (document.getElementById('add-family-form')) {
+            document.getElementById('add-family-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('name', document.getElementById('new-family-name').value);
+                try {
+                    const res = await fetch(`${API_URL}/families`, { method: 'POST', body: formData });
+                    if (res.ok) {
+                        document.getElementById('add-family-form').reset();
+                        showToast('✅ 家庭添加成功');
+                        await loadFamilies();
+                    }
+                } catch (err) {}
+            });
+        }
+        
+        async function deleteFamily(id) {
+            if(!confirm('确定删除此家庭？该家庭关联会丢失。')) return;
+            try {
+                const res = await fetch(`${API_URL}/families/${id}`, { method: 'DELETE' });
+                if(res.ok) { showToast('✅ 家庭已删除'); if(currentFamilyId === id) { currentFamilyId = 0; onFamilyChange(); } else { loadFamilies(); } }
+            } catch(e){}
+        }
+
+        // Channels
+        async function loadChannels() {
+            try {
+                const res = await fetch(`${API_URL}/notify-channels`);
+                const channels = await res.json();
+                const sList = document.getElementById('settings-channel-list');
+                if (!sList) return;
+                sList.innerHTML = '';
+                channels.forEach(c => {
+                    const status = c.enabled ? '<span class="badge bg-success">已启用</span>' : '<span class="badge bg-secondary">已禁用</span>';
+                    sList.innerHTML += `
+                        <div class="border-bottom py-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div><span class="fw-bold">${c.name}</span> (${c.channel_type}) ${status}</div>
+                                <div>
+                                    <button class="btn btn-sm text-info" onclick="testChannel(${c.id})"><i class="bi bi-send"></i></button>
+                                    <button class="btn btn-sm ${c.enabled?'text-warning':'text-success'}" onclick="toggleChannel(${c.id}, ${!c.enabled})"><i class="bi ${c.enabled?'bi-pause-circle':'bi-play-circle'}"></i></button>
+                                    <button class="btn btn-sm text-danger" onclick="deleteChannel(${c.id})"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </div>
+                            <small class="text-muted">Token: ${c.config.token || '-'}</small>
+                        </div>
+                    `;
+                });
+            } catch(e){}
+        }
+        
+        if (document.getElementById('add-channel-form')) {
+            document.getElementById('add-channel-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('name', document.getElementById('channel-name').value);
+                formData.append('channel_type', 'pushplus');
+                formData.append('config', JSON.stringify({token: document.getElementById('channel-token').value}));
+                try {
+                    const res = await fetch(`${API_URL}/notify-channels`, { method: 'POST', body: formData });
+                    if(res.ok) {
+                        document.getElementById('add-channel-form').reset();
+                        showToast('✅ 渠道添加成功');
+                        loadChannels();
+                    }
+                } catch(e){}
+            });
+        }
+
+        async function toggleChannel(id, enabled) {
+            const formData = new FormData(); formData.append('enabled', enabled);
+            try {
+                const res = await fetch(`${API_URL}/notify-channels/${id}`, { method: 'PUT', body: formData });
+                if(res.ok) { showToast('✅ 状态已更新'); loadChannels(); }
+            } catch(e){}
+        }
+        async function testChannel(id) {
+            try {
+                const res = await fetch(`${API_URL}/notify-channels/${id}/test`, { method: 'POST' });
+                if(res.ok) showToast('✅ 测试消息已推送');
+                else showToast('❌ 测试发送失败');
+            } catch(e){}
+        }
+        async function deleteChannel(id) {
+            if(!confirm('确定删除?')) return;
+            try {
+                const res = await fetch(`${API_URL}/notify-channels/${id}`, { method: 'DELETE' });
+                if(res.ok) { showToast('✅ 渠道已删除'); loadChannels(); }
+            } catch(e){}
+        }
+
+        // Tokens
+        async function loadTokens() {
+            try {
+                const res = await fetch(`${API_URL}/tokens`);
+                const tokens = await res.json();
+                const sList = document.getElementById('settings-token-list');
+                if (!sList) return;
+                sList.innerHTML = '';
+                tokens.forEach(t => {
+                    sList.innerHTML += `
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <span class="fw-bold">${t.name}</span><br>
+                                <div class="input-group input-group-sm mt-1" style="max-width: 300px;">
+                                    <input type="password" class="form-control font-monospace" value="${t.token}" readonly id="token-input-${t.id}">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleTokenVisibility(${t.id})"><i class="bi bi-eye" id="token-eye-${t.id}"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="copyToken('${t.token}')"><i class="bi bi-clipboard"></i></button>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm text-danger" onclick="deleteToken(${t.id})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    `;
+                });
+            } catch(e){}
+        }
+        
+        function toggleTokenVisibility(id) {
+            const input = document.getElementById(`token-input-${id}`);
+            const icon = document.getElementById(`token-eye-${id}`);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        async function copyToken(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('✅ Token已复制');
+            } catch (err) {
+                showToast('❌ 复制失败');
+            }
+        }
+        
+        if (document.getElementById('add-token-form')) {
+            document.getElementById('add-token-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('name', document.getElementById('token-name').value);
+                try {
+                    const res = await fetch(`${API_URL}/tokens`, { method: 'POST', body: formData });
+                    if(res.ok) {
+                        const data = await res.json();
+                        document.getElementById('add-token-form').reset();
+                        showToast('✅ Token 创建成功');
+                        loadTokens();
+                    }
+                } catch(e){}
+            });
+        }
+        
+        async function deleteToken(id) {
+            if(!confirm('确定删除此Token? 关联API将失效。')) return;
+            try {
+                const res = await fetch(`${API_URL}/tokens/${id}`, { method: 'DELETE' });
+                if(res.ok) { showToast('✅ Token已删除'); loadTokens(); }
+            } catch(e){}
+        }
+
+        // Usage history
+        let usageHistoryModal = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            usageHistoryModal = new bootstrap.Modal(document.getElementById('usageHistoryModal'));
+        });
+        
+        async function openUsageHistoryModal(itemId) {
+            const list = document.getElementById('usage-history-list');
+            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
+            if (usageHistoryModal) usageHistoryModal.show();
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}/usages`);
+                const usages = await res.json();
+                if (usages.length === 0) {
+                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无使用记录</div>';
+                    return;
+                }
+                list.innerHTML = usages.map(u => `
+                    <div class="purchase-item text-center d-flex flex-column align-items-start px-4">
+                        <div class="fw-bold fs-6">消耗量：${u.quantity}</div>
+                        <div class="text-muted mt-1 w-100 text-start" style="font-size: 0.8rem;"><i class="bi bi-clock"></i> ${u.date}</div>
+                    </div>
+                `).join('');
+            } catch(e) {
+                list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--danger);">加载失败</div>';
+            }
+        }
+
         // ---- Navigation ----
         function showSection(sectionId, navElement = null) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -811,10 +1143,12 @@
             if (navElement) {
                 navElement.classList.add('active');
             } else {
+            if(sectionId === 'settings-section') { loadFamilies(); loadChannels(); loadTokens(); }
                 const mapping = {
                     'dashboard-section': 'nav-dashboard',
                     'items-section': 'nav-items',
                     'add-item-section': 'nav-add',
+                    'settings-section': 'nav-settings',
                 };
                 const navId = mapping[sectionId];
                 if (navId) document.getElementById(navId).classList.add('active');
@@ -827,7 +1161,7 @@
         // ---- Dashboard ----
         async function loadDashboard() {
             try {
-                const res = await fetch(`${API_URL}/dashboard`);
+                const res = await fetch(`${API_URL}/dashboard` + (currentFamilyId > 0 ? `?family_id=${currentFamilyId}` : ''));
                 const data = await res.json();
                 document.getElementById('dash-items').textContent = data.total_items;
                 document.getElementById('dash-value').textContent = `¥${data.total_value}`;
@@ -863,7 +1197,7 @@
         // ---- Items ----
         async function loadItems() {
             try {
-                const res = await fetch(`${API_URL}/items`);
+                const res = await fetch(`${API_URL}/items` + (currentFamilyId > 0 ? `?family_id=${currentFamilyId}` : ''));
                 allItems = await res.json();
                 renderItems(allItems);
             } catch (e) {
@@ -921,6 +1255,9 @@
                         </button>
                         <button class="btn btn-outline-info btn-sm" onclick="openHistoryModal(${item.id})" title="购买记录">
                             <i class="bi bi-clock-history"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="openUsageHistoryModal(${item.id})" title="使用记录">
+                            <i class="bi bi-card-list"></i>
                         </button>
                     </div>
                 </div>
@@ -1031,6 +1368,7 @@
                 document.getElementById('edit-name').value = item.name;
                 document.getElementById('edit-description').value = item.description || '';
                 document.getElementById('edit-unit').value = item.unit;
+                document.getElementById('edit-family-select').value = item.family_id || '';
                 document.getElementById('edit-quantity').value = item.current_quantity;
                 document.getElementById('edit-min-quantity').value = item.min_quantity;
                 editModal.show();
@@ -1047,6 +1385,7 @@
             formData.append('unit', document.getElementById('edit-unit').value);
             formData.append('current_quantity', document.getElementById('edit-quantity').value);
             formData.append('min_quantity', document.getElementById('edit-min-quantity').value);
+            formData.append('family_id', document.getElementById('edit-family-select').value);
             const imageFile = document.getElementById('edit-image').files[0];
             if (imageFile) formData.append('image', imageFile);
 
@@ -1138,7 +1477,9 @@
         }
 
         // ---- Init ----
-        loadDashboard();
+        loadFamilies().then(() => { loadDashboard(); loadItems(); });
+        loadChannels();
+        loadTokens();
     </script>
 </body>
 

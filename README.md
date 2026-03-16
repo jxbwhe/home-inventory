@@ -51,7 +51,7 @@
 
 2. **克隆项目并进入目录**：
    ```bash
-   git clone https://github.com/yourusername/home-inventory.git
+   git clone https://github.com/jxbwhe/home-inventory.git
    cd home-inventory
    ```
 
