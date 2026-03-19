@@ -362,10 +362,14 @@ async def add_purchase(
     db_item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="物品不存在")
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="购买数量必须大于 0")
+    if price < 0:
+        raise HTTPException(status_code=400, detail="购买价格不能为负数")
     image_url = None
     if image and image.filename:
         image_url = save_upload_file(image)
-    unit_price = round(price / quantity, 2) if quantity > 0 else 0
+    unit_price = round(price / quantity, 2)
     now = datetime.utcnow()
     db_purchase = PurchaseDB(item_id=item_id, quantity=quantity, price=price,
                              unit_price=unit_price, image_url=image_url, date=now)
@@ -393,6 +397,8 @@ async def add_usage(item_id: int = Form(...), quantity: float = Form(...), db: S
     db_item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="物品不存在")
+    if quantity <= 0:
+        raise HTTPException(status_code=400, detail="使用数量必须大于 0")
     if db_item.current_quantity < quantity:
         raise HTTPException(status_code=400, detail="库存不足")
     now = datetime.utcnow()
@@ -614,7 +620,11 @@ def openapi_add_purchase(data: OpenApiPurchaseCreate, token: ApiTokenDB = Depend
     db_item = db.query(ItemDB).filter(ItemDB.id == data.item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="物品不存在")
-    unit_price = round(data.price / data.quantity, 2) if data.quantity > 0 else 0
+    if data.quantity <= 0:
+        raise HTTPException(status_code=400, detail="购买数量必须大于 0")
+    if data.price < 0:
+        raise HTTPException(status_code=400, detail="购买价格不能为负数")
+    unit_price = round(data.price / data.quantity, 2)
     now = datetime.utcnow()
     db_purchase = PurchaseDB(item_id=data.item_id, quantity=data.quantity, price=data.price,
                              unit_price=unit_price, date=now)
@@ -630,6 +640,8 @@ def openapi_add_usage(data: OpenApiUsageCreate, token: ApiTokenDB = Depends(veri
     db_item = db.query(ItemDB).filter(ItemDB.id == data.item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="物品不存在")
+    if data.quantity <= 0:
+        raise HTTPException(status_code=400, detail="使用数量必须大于 0")
     if db_item.current_quantity < data.quantity:
         raise HTTPException(status_code=400, detail="库存不足")
     now = datetime.utcnow()
