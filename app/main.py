@@ -12,7 +12,7 @@ import urllib.parse
 import json
 import logging
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,6 +26,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 TIME_FMT = "%Y-%m-%d %H:%M:%S"
+SHOPPING_STATUS = {"pending", "purchased", "ignored"}
 
 
 # ===================== Models =====================
@@ -56,6 +57,8 @@ class ItemDB(Base):
     family = relationship("FamilyDB", back_populates="items")
     purchases = relationship("PurchaseDB", back_populates="item", cascade="all, delete-orphan")
     usages = relationship("UsageDB", back_populates="item", cascade="all, delete-orphan")
+    adjustments = relationship("InventoryAdjustmentDB", back_populates="item", cascade="all, delete-orphan")
+    shopping_list_items = relationship("ShoppingListItemDB", back_populates="item", cascade="all, delete-orphan")
 
 
 class PurchaseDB(Base):
@@ -79,6 +82,37 @@ class UsageDB(Base):
     quantity = Column(Float)
 
     item = relationship("ItemDB", back_populates="usages")
+
+
+class InventoryAdjustmentDB(Base):
+    __tablename__ = "inventory_adjustments"
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"))
+    before_quantity = Column(Float)
+    adjusted_quantity = Column(Float)
+    delta = Column(Float)
+    reason = Column(String, default="")
+    date = Column(DateTime, default=datetime.utcnow)
+
+    item = relationship("ItemDB", back_populates="adjustments")
+
+
+class ShoppingListItemDB(Base):
+    __tablename__ = "shopping_list_items"
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("items.id"))
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
+    suggested_quantity = Column(Float, default=0.0)
+    unit = Column(String, default="个")
+    latest_unit_price = Column(Float, default=0.0)
+    estimated_cost = Column(Float, default=0.0)
+    status = Column(String, default="pending")  # pending / purchased / ignored
+    note = Column(String, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    item = relationship("ItemDB", back_populates="shopping_list_items")
+    family = relationship("FamilyDB")
 
 
 class NotifyChannelDB(Base):
@@ -228,6 +262,20 @@ def _item_to_dict(item: ItemDB) -> dict:
         "family_name": item.family.name if item.family else None,
         "created_at": item.created_at.strftime(TIME_FMT),
     }
+
+
+def _round2(v: float) -> float:
+    return round(v, 2)
+
+
+def _calculate_suggested_restock_quantity(item: ItemDB, lookback_days: int = 30, coverage_days: int = 14) -> float:
+    now = datetime.utcnow()
+    recent_usages = [u for u in item.usages if (now - u.date).days <= lookback_days]
+    recent_usage_qty = sum(u.quantity for u in recent_usages)
+    forecast_qty = (recent_usage_qty / lookback_days) * coverage_days if lookback_days > 0 else 0
+    low_gap = max(item.min_quantity - item.current_quantity, 0)
+    suggested = max(low_gap, forecast_qty, 1 if low_gap > 0 else 0)
+    return _round2(suggested)
 
 
 # ===================== Family Routes =====================
@@ -455,6 +503,183 @@ def get_dashboard(family_id: Optional[int] = None, db: Session = Depends(get_db)
     }
 
 
+@app.put("/api/items/{item_id}/adjust")
+def adjust_item_inventory(
+    item_id: int,
+    adjusted_quantity: float = Form(...),
+    reason: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    db_item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="物品不存在")
+    if adjusted_quantity < 0:
+        raise HTTPException(status_code=400, detail="校准库存不能为负数")
+    before = db_item.current_quantity
+    db_item.current_quantity = adjusted_quantity
+    now = datetime.utcnow()
+    adjustment = InventoryAdjustmentDB(
+        item_id=item_id,
+        before_quantity=before,
+        adjusted_quantity=adjusted_quantity,
+        delta=_round2(adjusted_quantity - before),
+        reason=reason.strip(),
+        date=now,
+    )
+    db_item.last_usage_date = now
+    db.add(adjustment)
+    db.commit()
+    check_low_inventory(db, db_item)
+    return {
+        "message": "库存校准成功",
+        "item_id": item_id,
+        "before_quantity": _round2(before),
+        "adjusted_quantity": _round2(adjusted_quantity),
+        "delta": _round2(adjusted_quantity - before),
+    }
+
+
+@app.get("/api/alerts/low-stock")
+def get_low_stock_alerts(family_id: Optional[int] = None, db: Session = Depends(get_db)):
+    q = db.query(ItemDB).filter(ItemDB.min_quantity > 0, ItemDB.current_quantity <= ItemDB.min_quantity)
+    if family_id is not None:
+        q = q.filter(ItemDB.family_id == family_id)
+    items = q.order_by(ItemDB.id.desc()).all()
+    return [{
+        "id": item.id,
+        "name": item.name,
+        "current_quantity": _round2(item.current_quantity),
+        "min_quantity": _round2(item.min_quantity),
+        "unit": item.unit,
+        "family_id": item.family_id,
+        "family_name": item.family.name if item.family else None,
+    } for item in items]
+
+
+@app.post("/api/shopping-list/generate")
+def generate_shopping_list(
+    family_id: Optional[int] = Form(None),
+    lookback_days: int = Form(30),
+    coverage_days: int = Form(14),
+    db: Session = Depends(get_db),
+):
+    if lookback_days <= 0 or coverage_days <= 0:
+        raise HTTPException(status_code=400, detail="统计区间必须大于 0")
+    q = db.query(ItemDB).filter(ItemDB.min_quantity > 0, ItemDB.current_quantity <= ItemDB.min_quantity)
+    if family_id is not None:
+        q = q.filter(ItemDB.family_id == family_id)
+    items = q.all()
+    created_count = 0
+    updated_count = 0
+    now = datetime.utcnow()
+    generated_items = []
+    for item in items:
+        suggested_quantity = _calculate_suggested_restock_quantity(item, lookback_days, coverage_days)
+        if suggested_quantity <= 0:
+            continue
+        latest_purchase = sorted(item.purchases, key=lambda p: p.date, reverse=True)
+        latest_unit_price = latest_purchase[0].unit_price if latest_purchase else 0
+        estimated_cost = _round2(suggested_quantity * latest_unit_price)
+        existing = db.query(ShoppingListItemDB).filter(
+            ShoppingListItemDB.item_id == item.id,
+            ShoppingListItemDB.status == "pending",
+        ).order_by(ShoppingListItemDB.id.desc()).first()
+        if existing:
+            existing.suggested_quantity = suggested_quantity
+            existing.unit = item.unit
+            existing.latest_unit_price = _round2(latest_unit_price)
+            existing.estimated_cost = estimated_cost
+            existing.family_id = item.family_id
+            existing.updated_at = now
+            updated_count += 1
+            row = existing
+        else:
+            row = ShoppingListItemDB(
+                item_id=item.id,
+                family_id=item.family_id,
+                suggested_quantity=suggested_quantity,
+                unit=item.unit,
+                latest_unit_price=_round2(latest_unit_price),
+                estimated_cost=estimated_cost,
+                status="pending",
+                note="",
+                created_at=now,
+                updated_at=now,
+            )
+            db.add(row)
+            created_count += 1
+        generated_items.append({
+            "item_id": item.id,
+            "item_name": item.name,
+            "suggested_quantity": suggested_quantity,
+            "unit": item.unit,
+            "estimated_cost": estimated_cost,
+        })
+    db.commit()
+    return {
+        "message": "补货清单生成完成",
+        "created": created_count,
+        "updated": updated_count,
+        "count": len(generated_items),
+        "items": generated_items,
+    }
+
+
+@app.get("/api/shopping-list")
+def get_shopping_list(
+    family_id: Optional[int] = None,
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    if status is not None and status not in SHOPPING_STATUS:
+        raise HTTPException(status_code=400, detail="无效的清单状态")
+    q = db.query(ShoppingListItemDB)
+    if family_id is not None:
+        q = q.filter(ShoppingListItemDB.family_id == family_id)
+    if status is not None:
+        q = q.filter(ShoppingListItemDB.status == status)
+    rows = q.order_by(ShoppingListItemDB.status.asc(), ShoppingListItemDB.updated_at.desc()).all()
+    result = []
+    for row in rows:
+        result.append({
+            "id": row.id,
+            "item_id": row.item_id,
+            "item_name": row.item.name if row.item else None,
+            "family_id": row.family_id,
+            "family_name": row.family.name if row.family else None,
+            "current_quantity": _round2(row.item.current_quantity) if row.item else 0,
+            "min_quantity": _round2(row.item.min_quantity) if row.item else 0,
+            "suggested_quantity": _round2(row.suggested_quantity),
+            "unit": row.unit,
+            "latest_unit_price": _round2(row.latest_unit_price),
+            "estimated_cost": _round2(row.estimated_cost),
+            "status": row.status,
+            "note": row.note,
+            "updated_at": row.updated_at.strftime(TIME_FMT),
+            "created_at": row.created_at.strftime(TIME_FMT),
+        })
+    return result
+
+
+@app.put("/api/shopping-list/{shopping_id}")
+def update_shopping_list_item(
+    shopping_id: int,
+    status: str = Form(...),
+    note: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    if status not in SHOPPING_STATUS:
+        raise HTTPException(status_code=400, detail="无效的清单状态")
+    row = db.query(ShoppingListItemDB).filter(ShoppingListItemDB.id == shopping_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="补货清单项不存在")
+    row.status = status
+    row.note = note.strip()
+    row.updated_at = datetime.utcnow()
+    db.commit()
+    return {"message": "补货清单项更新成功", "id": shopping_id, "status": status}
+
+
 @app.post("/api/check-inventory")
 def manual_check_inventory(db: Session = Depends(get_db)):
     low_items = check_low_inventory(db)
@@ -597,6 +822,37 @@ class OpenApiUsageCreate(BaseModel):
     quantity: float
 
 
+class OpenApiQuickEntry(BaseModel):
+    action: Literal["purchase", "usage"]
+    quantity: float
+    price: Optional[float] = None
+    item_id: Optional[int] = None
+    item_name: Optional[str] = None
+    family_id: Optional[int] = None
+    note: str = ""
+
+
+def _resolve_item_for_quick_entry(db: Session, item_id: Optional[int], item_name: Optional[str], family_id: Optional[int]) -> ItemDB:
+    if item_id is not None:
+        item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
+        if not item:
+            raise HTTPException(status_code=404, detail="物品不存在")
+        if family_id is not None and item.family_id != family_id:
+            raise HTTPException(status_code=400, detail="物品不属于指定家庭")
+        return item
+    if not item_name:
+        raise HTTPException(status_code=400, detail="item_id 和 item_name 不能同时为空")
+    q = db.query(ItemDB).filter(ItemDB.name == item_name)
+    if family_id is not None:
+        q = q.filter(ItemDB.family_id == family_id)
+    items = q.order_by(ItemDB.id.asc()).all()
+    if not items:
+        raise HTTPException(status_code=404, detail="未找到匹配物品")
+    if len(items) > 1:
+        raise HTTPException(status_code=400, detail="匹配到多个同名物品，请改用 item_id")
+    return items[0]
+
+
 @app.post("/openapi/items")
 def openapi_create_item(data: OpenApiItemCreate, token: ApiTokenDB = Depends(verify_api_token), db: Session = Depends(get_db)):
     db_item = ItemDB(name=data.name, description=data.description, unit=data.unit,
@@ -613,6 +869,40 @@ def openapi_get_items(family_id: Optional[int] = None, token: ApiTokenDB = Depen
     if family_id is not None:
         q = q.filter(ItemDB.family_id == family_id)
     return [_item_to_dict(item) for item in q.all()]
+
+
+@app.get("/openapi/families")
+def openapi_get_families(token: ApiTokenDB = Depends(verify_api_token), db: Session = Depends(get_db)):
+    families = db.query(FamilyDB).order_by(FamilyDB.id).all()
+    return [{"id": f.id, "name": f.name, "item_count": len(f.items)} for f in families]
+
+
+@app.get("/openapi/shortcut/menu")
+def openapi_shortcut_menu(
+    family_id: Optional[int] = None,
+    token: ApiTokenDB = Depends(verify_api_token),
+    db: Session = Depends(get_db),
+):
+    families = db.query(FamilyDB).order_by(FamilyDB.id).all()
+    items_q = db.query(ItemDB)
+    if family_id is not None:
+        items_q = items_q.filter(ItemDB.family_id == family_id)
+    items = items_q.order_by(ItemDB.id.asc()).all()
+    return {
+        "actions": [
+            {"value": "purchase", "label": "补货"},
+            {"value": "usage", "label": "使用"},
+        ],
+        "families": [{"id": f.id, "name": f.name, "item_count": len(f.items)} for f in families],
+        "items": [{
+            "id": item.id,
+            "name": item.name,
+            "family_id": item.family_id,
+            "family_name": item.family.name if item.family else None,
+            "unit": item.unit,
+            "current_quantity": round(item.current_quantity, 2),
+        } for item in items],
+    }
 
 
 @app.post("/openapi/purchases")
@@ -652,6 +942,62 @@ def openapi_add_usage(data: OpenApiUsageCreate, token: ApiTokenDB = Depends(veri
     db.commit()
     check_low_inventory(db, db_item)
     return {"message": "使用记录已添加"}
+
+
+@app.post("/openapi/quick-entry")
+def openapi_quick_entry(data: OpenApiQuickEntry, token: ApiTokenDB = Depends(verify_api_token), db: Session = Depends(get_db)):
+    if data.quantity <= 0:
+        raise HTTPException(status_code=400, detail="数量必须大于 0")
+    item = _resolve_item_for_quick_entry(db, data.item_id, data.item_name, data.family_id)
+    if data.action == "purchase":
+        if data.price is None:
+            raise HTTPException(status_code=400, detail="补货记录必须填写 price")
+        if data.price < 0:
+            raise HTTPException(status_code=400, detail="购买价格不能为负数")
+        unit_price = round(data.price / data.quantity, 2)
+        now = datetime.utcnow()
+        db_purchase = PurchaseDB(
+            item_id=item.id,
+            quantity=data.quantity,
+            price=data.price,
+            unit_price=unit_price,
+            date=now,
+        )
+        item.current_quantity += data.quantity
+        item.last_purchase_date = now
+        db.add(db_purchase)
+        db.commit()
+        return {
+            "message": "快捷补货记录已添加",
+            "item_id": item.id,
+            "item_name": item.name,
+            "action": "purchase",
+            "quantity": data.quantity,
+            "price": round(data.price, 2),
+            "unit_price": unit_price,
+            "current_quantity": round(item.current_quantity, 2),
+            "note": data.note,
+        }
+    if data.action == "usage":
+        if item.current_quantity < data.quantity:
+            raise HTTPException(status_code=400, detail="库存不足")
+        now = datetime.utcnow()
+        db_usage = UsageDB(item_id=item.id, quantity=data.quantity, date=now)
+        item.current_quantity -= data.quantity
+        item.last_usage_date = now
+        db.add(db_usage)
+        db.commit()
+        check_low_inventory(db, item)
+        return {
+            "message": "快捷使用记录已添加",
+            "item_id": item.id,
+            "item_name": item.name,
+            "action": "usage",
+            "quantity": data.quantity,
+            "current_quantity": round(item.current_quantity, 2),
+            "note": data.note,
+        }
+    raise HTTPException(status_code=400, detail="无效 action")
 
 
 # ===================== Static Files =====================

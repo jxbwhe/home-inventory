@@ -3,137 +3,187 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家庭消耗品管理</title>
     <meta name="description" content="家庭消耗品库存管理工具，跟踪消耗品使用情况，提醒补货">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
-            --danger: #ef4444;
-            --danger-light: #fca5a5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --bg: #f0f2f5;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-muted: #94a3b8;
-            --border: #e2e8f0;
-            --gradient-start: #6366f1;
-            --gradient-end: #8b5cf6;
-            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --bg: #eef2f7;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --line: #d6dde8;
+            --text: #14233b;
+            --text-soft: #5e708c;
+            --nav-bg: #0f2743;
+            --nav-active: #12355f;
+            --accent: #0f7bff;
+            --accent-soft: #e8f2ff;
+            --danger: #dc3545;
+            --warning: #ff9f1a;
+            --success: #14a44d;
+            --shadow: 0 8px 26px rgba(15, 39, 67, 0.08);
+            --radius-lg: 18px;
+            --radius-md: 12px;
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
-            font-family: 'Noto Sans SC', -apple-system, sans-serif;
-            background: var(--bg);
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Noto Sans SC', sans-serif;
             color: var(--text);
-            padding-bottom: 80px;
-            -webkit-tap-highlight-color: transparent;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(15, 123, 255, 0.08), transparent 28%),
+                radial-gradient(circle at 80% 0%, rgba(20, 164, 77, 0.06), transparent 24%),
+                var(--bg);
         }
 
-        /* Header */
-        .app-header {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: #fff;
-            padding: 20px 16px 16px;
-            text-align: center;
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #0e2948 0%, #112e4f 100%);
+            color: #f2f6ff;
+            padding: 20px 14px;
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            height: 100vh;
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
         }
 
-        .app-header h1 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            letter-spacing: 1px;
+        .brand {
+            padding: 10px 12px 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        .app-header .subtitle {
-            font-size: 0.75rem;
-            opacity: 0.8;
-            margin-top: 2px;
+        .brand h1 {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            font-size: 1.02rem;
+            margin: 0;
+            letter-spacing: 0.2px;
         }
 
-        /* Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card-bg);
-            border-top: 1px solid var(--border);
+        .brand p {
+            margin: 6px 0 0;
+            font-size: 0.76rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-stack {
             display: flex;
-            justify-content: space-around;
-            z-index: 1000;
-            padding: 6px 0 env(safe-area-inset-bottom, 8px);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 14px;
         }
 
         .nav-btn {
+            border: 0;
+            width: 100%;
+            text-align: left;
+            color: rgba(255, 255, 255, 0.82);
+            border-radius: 10px;
+            background: transparent;
+            padding: 11px 12px;
+            font-weight: 600;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding: 6px 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.65rem;
-            font-weight: 500;
-            border: none;
-            background: none;
-            cursor: pointer;
-            transition: color 0.2s;
+            gap: 10px;
             position: relative;
+            transition: all 0.2s;
         }
 
-        .nav-btn i {
-            font-size: 1.4rem;
-            margin-bottom: 2px;
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
         }
 
         .nav-btn.active {
-            color: var(--primary);
+            background: var(--nav-active);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
         }
 
-        .nav-btn .badge-dot {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background: var(--danger);
+        .nav-btn i {
+            font-size: 1.06rem;
+        }
+
+        .badge-dot {
+            width: 9px;
+            height: 9px;
+            background: #ff5b66;
             border-radius: 50%;
+            position: absolute;
+            right: 10px;
+            top: 10px;
             display: none;
         }
 
-        /* Sections */
+        .workspace {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            background: rgba(238, 242, 247, 0.85);
+            border-bottom: 1px solid #d9e1ec;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .topbar .sub {
+            margin: 2px 0 0;
+            color: var(--text-soft);
+            font-size: 0.83rem;
+        }
+
+        .family-switch {
+            min-width: 180px;
+            max-width: 280px;
+        }
+
+        .content {
+            padding: 22px;
+        }
+
         .section {
             display: none;
-            padding: 16px;
         }
 
         .section.active {
             display: block;
-            animation: fadeIn 0.25s ease;
+            animation: fadeIn .2s ease;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: translateY(6px);
             }
 
             to {
@@ -142,362 +192,342 @@
             }
         }
 
-        /* Dashboard Cards */
+        .panel {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid #dfe6f0;
+            box-shadow: var(--shadow);
+            padding: 18px;
+        }
+
+        .stats-grid {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .stat-card {
-            background: var(--card-bg);
+            background: linear-gradient(155deg, #ffffff 0%, #f2f7ff 100%);
+            border: 1px solid #dbe6f5;
             border-radius: 16px;
             padding: 16px;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
         }
 
-        .stat-card:active {
-            transform: scale(0.97);
+        .stat-card .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 10px;
         }
 
-        .stat-card .stat-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        .stat-card .value {
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .stat-card .label {
+            font-size: 0.84rem;
+            color: var(--text-soft);
+            margin-top: 3px;
+        }
+
+        .section-title {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 1.3rem;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
-        .stat-card .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text);
+        .section-title h5 {
+            margin: 0;
+            font-family: 'Manrope', sans-serif;
+            font-size: 1.06rem;
+            font-weight: 800;
         }
 
-        .stat-card .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* Alert List */
         .alert-item {
-            background: linear-gradient(135deg, #fef2f2, #fff1f2);
-            border: 1px solid var(--danger-light);
+            background: #fff5f6;
+            border: 1px solid #ffd0d6;
             border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
+            padding: 11px 13px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            margin-bottom: 8px;
         }
 
         .alert-item .alert-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--danger);
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            background: #ff5b66;
             color: #fff;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
             flex-shrink: 0;
         }
 
-        .alert-item .alert-info {
-            flex: 1;
-        }
-
-        .alert-item .alert-name {
-            font-weight: 600;
+        .alert-name {
+            font-weight: 700;
             font-size: 0.9rem;
         }
 
-        .alert-item .alert-detail {
-            font-size: 0.75rem;
-            color: var(--danger);
-            margin-top: 2px;
+        .alert-detail {
+            font-size: 0.8rem;
+            color: #bf1e2e;
+            margin-top: 1px;
         }
 
-        /* Item Cards */
-        .item-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-card:active {
-            transform: scale(0.98);
-        }
-
-        .item-card.low-stock {
-            border: 2px solid var(--danger);
-        }
-
-        .item-card.low-stock::before {
-            content: '库存不足';
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: var(--danger);
-            color: #fff;
-            font-size: 0.6rem;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-            z-index: 2;
-        }
-
-        .item-card .card-img-wrap {
-            position: relative;
-            height: 120px;
-            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .item-card .card-img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .item-card .card-img-wrap .no-img {
-            color: var(--primary-light);
-            font-size: 2.5rem;
-        }
-
-        .item-card .card-content {
-            padding: 12px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-card .item-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .item-card .item-info {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            line-height: 1.7;
-            flex: 1;
-        }
-
-        .item-card .item-info .qty-low {
-            color: var(--danger);
-            font-weight: 600;
-        }
-
-        .item-card .item-actions {
-            display: flex;
-            gap: 4px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .item-card .item-actions .btn {
-            flex: 1;
-            min-width: 0;
-            font-size: 0.68rem;
-            padding: 5px 4px;
-            border-radius: 8px;
-        }
-
-        /* Search */
         .search-bar {
             position: relative;
             margin-bottom: 16px;
         }
 
-        .search-bar input {
-            width: 100%;
-            padding: 10px 14px 10px 40px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.9rem;
-            background: var(--card-bg);
-            transition: border-color 0.2s;
-        }
-
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
         .search-bar i {
             position: absolute;
-            left: 14px;
+            left: 13px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-muted);
+            color: #6a7b95;
         }
 
-        /* Forms */
-        .form-card {
-            background: var(--card-bg);
+        .search-bar input {
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            width: 100%;
+            background: #fff;
+            padding: 10px 12px 10px 38px;
+        }
+
+        .item-card {
             border-radius: 16px;
-            padding: 20px;
+            overflow: hidden;
+            border: 1px solid #dde6f3;
+            background: #fff;
             box-shadow: var(--shadow);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
-        .form-label {
-            font-weight: 500;
-            font-size: 0.85rem;
-            color: var(--text);
+        .item-card.low-stock {
+            border-color: #ff9ca6;
+            box-shadow: 0 8px 22px rgba(220, 53, 69, 0.15);
+        }
+
+        .item-card.low-stock::before {
+            content: '库存不足';
+            position: absolute;
+            top: 9px;
+            right: 9px;
+            background: #ff5b66;
+            color: #fff;
+            font-size: 0.68rem;
+            border-radius: 999px;
+            padding: 2px 8px;
+            z-index: 3;
+        }
+
+        .card-img-wrap {
+            height: 130px;
+            background: linear-gradient(130deg, #d8e7fb, #e8f0fc);
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        .card-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .no-img {
+            font-size: 2.1rem;
+            color: #8ea7c9;
+        }
+
+        .card-content {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+
+        .item-info {
+            font-size: 0.78rem;
+            color: #5f7492;
+            line-height: 1.7;
+            flex: 1;
+        }
+
+        .qty-low {
+            color: #bf1e2e;
+            font-weight: 700;
+        }
+
+        .item-actions {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 4px;
+        }
+
+        .item-actions .btn {
+            border-radius: 8px;
+            padding: 5px 0;
+        }
+
+        .form-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #dde6f3;
+            box-shadow: var(--shadow);
+            padding: 18px;
         }
 
         .form-control,
         .form-select {
-            border: 2px solid var(--border);
+            border: 1px solid #cfd8e6;
             border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 0.9rem;
-            transition: border-color 0.2s;
+            padding: 9px 12px;
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(15, 123, 255, 0.14);
         }
 
-        /* Buttons */
         .btn-primary-gradient {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            border: none;
+            border: 0;
+            border-radius: 10px;
             color: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        .btn-primary-gradient:hover {
-            color: #fff;
-        }
-
-        .btn-primary-gradient:active {
-            transform: scale(0.97);
-            box-shadow: var(--shadow-lg);
+            background: linear-gradient(120deg, #0f7bff, #0c58d8);
+            font-weight: 700;
+            padding: 10px 12px;
         }
 
         .btn-danger-gradient {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            border: none;
+            border: 0;
+            border-radius: 10px;
             color: #fff;
-            border-radius: 12px;
-            font-weight: 600;
+            background: linear-gradient(120deg, #f35161, #d63543);
+            font-weight: 700;
         }
 
-        /* Modal */
         .modal-content {
-            border-radius: 20px;
-            border: none;
+            border-radius: 18px;
+            border: 1px solid #d9e2ef;
             overflow: hidden;
         }
 
         .modal-header {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: 0;
             color: #fff;
-            border: none;
-            padding: 16px 20px;
+            background: linear-gradient(120deg, #0f7bff, #0c58d8);
         }
 
         .modal-header .btn-close {
             filter: brightness(0) invert(1);
         }
 
-        .modal-body {
-            padding: 20px;
-        }
-
-        /* Purchase History */
         .purchase-item {
             display: flex;
             gap: 12px;
             padding: 12px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #e4eaf3;
             align-items: center;
         }
 
         .purchase-item:last-child {
-            border-bottom: none;
+            border-bottom: 0;
         }
 
         .purchase-item img {
-            width: 50px;
-            height: 50px;
+            width: 54px;
+            height: 54px;
             border-radius: 8px;
             object-fit: cover;
             flex-shrink: 0;
         }
 
-        .purchase-item .purchase-info {
-            flex: 1;
+        .purchase-date {
+            font-size: 0.75rem;
+            color: #6d809c;
         }
 
-        .purchase-item .purchase-date {
-            font-size: 0.72rem;
-            color: var(--text-muted);
+        .purchase-detail {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 2px;
         }
 
-        .purchase-item .purchase-detail {
-            font-size: 0.82rem;
-            font-weight: 500;
+        .shopping-list-wrap {
+            display: grid;
+            gap: 10px;
         }
 
-        /* Section Title */
-        .section-title {
-            display: flex;
+        .shopping-item {
+            border: 1px solid #dde6f3;
+            border-radius: 12px;
+            background: #fff;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
         }
 
-        .section-title h5 {
+        .shopping-item .title {
             font-weight: 700;
-            font-size: 1.1rem;
-            margin: 0;
+            font-size: 0.95rem;
         }
 
-        /* Toast */
+        .shopping-item .meta {
+            font-size: 0.8rem;
+            color: var(--text-soft);
+            margin-top: 2px;
+        }
+
         .toast-container {
             position: fixed;
             top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 24px;
             z-index: 9999;
         }
 
         .custom-toast {
-            background: var(--text);
+            background: #182f4f;
             color: #fff;
-            padding: 10px 20px;
+            padding: 10px 14px;
             border-radius: 10px;
             font-size: 0.85rem;
-            box-shadow: var(--shadow-lg);
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+            margin-top: 8px;
+            box-shadow: 0 10px 20px rgba(24, 47, 79, 0.32);
+            animation: toastIn 0.2s ease;
         }
 
         @keyframes toastIn {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-8px);
             }
 
             to {
@@ -506,212 +536,283 @@
             }
         }
 
-        @keyframes toastOut {
-            from {
-                opacity: 1;
+        @media (max-width: 1024px) {
+            .app-shell {
+                grid-template-columns: 1fr;
             }
 
-            to {
-                opacity: 0;
+            .sidebar {
+                position: fixed;
+                bottom: 0;
+                top: auto;
+                height: auto;
+                width: 100%;
+                z-index: 90;
+                padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+                background: rgba(12, 31, 55, 0.95);
+                backdrop-filter: blur(10px);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .brand {
+                display: none;
+            }
+
+            .nav-stack {
+                flex-direction: row;
+                margin-top: 0;
+                justify-content: space-between;
+                gap: 4px;
+            }
+
+            .nav-btn {
+                padding: 8px 4px;
+                text-align: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 2px;
+                font-size: 0.68rem;
+            }
+
+            .nav-btn i {
+                font-size: 1.2rem;
+            }
+
+            .badge-dot {
+                right: 28%;
+                top: 6px;
+            }
+
+            .topbar {
+                position: static;
+                padding: 14px 14px 10px;
+                background: transparent;
+                border-bottom: 0;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .family-switch {
+                max-width: none;
+                min-width: 0;
+            }
+
+            .content {
+                padding: 8px 14px 84px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 
 <body>
-
-    <!-- Header -->
-        <div class="app-header">
-        <h1><i class="bi bi-house-heart"></i> 家庭消耗品管理</h1>
-        <div class="subtitle">跟踪消耗 · 及时补货</div>
-        <div class="mt-2 text-center">
-            <select id="header-family-select" class="form-select form-select-sm" style="background-color: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; display: inline-block; width: auto; min-width: 120px;" onchange="onFamilyChange()">
-                <option value="0" style="color: black;">全部家庭</option>
-            </select>
-        </div>
-    </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Dashboard Section -->
-    <div id="dashboard-section" class="section active">
-        <div class="row g-3 mb-3">
-            <div class="col-4">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #e0e7ff; color: var(--primary);">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <div class="stat-value" id="dash-items">0</div>
-                    <div class="stat-label">物品总数</div>
-                </div>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <h1><i class="bi bi-house-heart"></i> 家庭消耗品管理</h1>
+                <p>Home Inventory Dashboard</p>
             </div>
-            <div class="col-4">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #d1fae5; color: var(--success);">
-                        <i class="bi bi-currency-yen"></i>
-                    </div>
-                    <div class="stat-value" id="dash-value">0</div>
-                    <div class="stat-label">库存价值</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7; color: var(--warning);">
-                        <i class="bi bi-graph-down-arrow"></i>
-                    </div>
-                    <div class="stat-value" id="dash-daily-cost">0</div>
-                    <div class="stat-label">日均消耗</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Low Stock Alert -->
-        <div id="low-stock-panel" style="display:none;">
-            <div class="section-title">
-                <h5><i class="bi bi-exclamation-triangle-fill" style="color:var(--danger);"></i> 补货提醒</h5>
-                <button class="btn btn-sm btn-danger-gradient" onclick="manualCheckInventory()" id="push-btn">
-                    <i class="bi bi-bell"></i> 推送通知
+            <div class="nav-stack">
+                <button class="nav-btn active" onclick="showSection('dashboard-section', this)" id="nav-dashboard">
+                    <i class="bi bi-house-door-fill"></i>
+                    <span>首页</span>
+                    <span class="badge-dot"></span>
+                </button>
+                <button class="nav-btn" onclick="showSection('items-section', this)" id="nav-items">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>物品</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('shopping-section', this)" id="nav-shopping">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>补货</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('add-item-section', this)" id="nav-add">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>添加</span>
+                </button>
+                <button class="nav-btn" onclick="showSection('settings-section', this)" id="nav-settings">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>设置</span>
                 </button>
             </div>
-            <div id="low-stock-list"></div>
-        </div>
-    </div>
+        </aside>
 
-    <!-- Items Section -->
-    <div id="items-section" class="section">
-        <div class="section-title">
-            <h5>全部物品</h5>
-            <button class="btn btn-sm btn-primary-gradient" onclick="showSection('add-item-section')">
-                <i class="bi bi-plus-lg"></i> 添加
-            </button>
-        </div>
-        <div class="search-bar">
-            <i class="bi bi-search"></i>
-            <input type="text" id="search-input" placeholder="搜索物品名称..." oninput="filterItems()">
-        </div>
-        <div class="row g-3" id="items-list"></div>
-        <div id="items-empty" style="display:none; text-align:center; padding:40px 0; color:var(--text-muted);">
-            <i class="bi bi-inbox" style="font-size:3rem; display:block; margin-bottom:12px;"></i>
-            <p>还没有物品，点击上方按钮添加</p>
-        </div>
-    </div>
-
-    <!-- Add Item Section -->
-    <div id="add-item-section" class="section">
-        <div class="section-title">
-            <h5>添加物品</h5>
-            <button class="btn btn-sm btn-outline-secondary" onclick="showSection('items-section')">
-                <i class="bi bi-arrow-left"></i> 返回
-            </button>
-        </div>
-        <div class="form-card">
-            <form id="add-item-form">
-                <div class="mb-3">
-                    <label class="form-label">物品名称 <span style="color:var(--danger);">*</span></label>
-                    <input type="text" class="form-control" name="name" required placeholder="如：抽纸、洗衣液...">
+        <div class="workspace">
+            <header class="topbar">
+                <div>
+                    <h2>家庭消耗品管理台</h2>
+                    <p class="sub">跟踪消耗趋势，及时补货，统一管理通知与 API</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">描述</label>
-                    <textarea class="form-control" name="description" rows="2" placeholder="可选，如品牌、规格等"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">所属家庭</label>
-                    <select class="form-select" name="family_id" id="add-family-select">
-                        <option value="">未分组</option>
+                <div class="family-switch">
+                    <select id="header-family-select" class="form-select" onchange="onFamilyChange()">
+                        <option value="0">全部家庭</option>
                     </select>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <label class="form-label">单位</label>
-                        <input type="text" class="form-control" name="unit" value="个" placeholder="个/包/瓶/kg">
+            </header>
+
+            <main class="content">
+                <div class="toast-container" id="toast-container"></div>
+
+                <div id="dashboard-section" class="section active">
+                    <div class="stats-grid mb-3">
+                        <div class="stat-card">
+                            <div class="icon" style="background:#e8f2ff;color:#0f7bff;"><i class="bi bi-box-seam"></i></div>
+                            <div class="value" id="dash-items">0</div>
+                            <div class="label">物品总数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon" style="background:#e8f9ef;color:#149e49;"><i class="bi bi-currency-yen"></i></div>
+                            <div class="value" id="dash-value">0</div>
+                            <div class="label">库存价值</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon" style="background:#fff5e7;color:#e2870c;"><i class="bi bi-graph-down-arrow"></i></div>
+                            <div class="value" id="dash-daily-cost">0</div>
+                            <div class="label">日均消耗</div>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">最低库存阈值</label>
-                        <input type="number" step="0.1" class="form-control" name="min_quantity" value="0"
-                            placeholder="低于此值告警">
+
+                    <div class="panel" id="low-stock-panel" style="display:none;">
+                        <div class="section-title">
+                            <h5><i class="bi bi-exclamation-triangle-fill" style="color:#d63543;"></i> 补货提醒</h5>
+                            <button class="btn btn-sm btn-danger-gradient" onclick="manualCheckInventory()" id="push-btn">
+                                <i class="bi bi-bell"></i> 推送通知
+                            </button>
+                        </div>
+                        <div id="low-stock-list"></div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">物品图片</label>
-                    <input type="file" class="form-control" name="image" accept="image/*">
+
+                <div id="items-section" class="section">
+                    <div class="section-title">
+                        <h5>全部物品</h5>
+                        <button class="btn btn-sm btn-primary-gradient" onclick="showSection('add-item-section')">
+                            <i class="bi bi-plus-lg"></i> 添加物品
+                        </button>
+                    </div>
+                    <div class="search-bar">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="search-input" placeholder="搜索物品名称..." oninput="filterItems()">
+                    </div>
+                    <div class="row g-3" id="items-list"></div>
+                    <div id="items-empty" style="display:none;text-align:center;padding:44px 0;color:var(--text-soft);">
+                        <i class="bi bi-inbox" style="font-size:2.7rem;display:block;margin-bottom:10px;"></i>
+                        <p>还没有物品，点击上方按钮添加</p>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary-gradient w-100">
-                    <i class="bi bi-plus-circle"></i> 保存物品
-                </button>
-            </form>
+
+                <div id="shopping-section" class="section">
+                    <div class="section-title">
+                        <h5>补货清单</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-primary-gradient" onclick="generateShoppingList()">
+                                <i class="bi bi-magic"></i> 生成清单
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="loadShoppingList()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="shopping-empty" style="display:none;text-align:center;padding:42px 0;color:var(--text-soft);">
+                        <i class="bi bi-bag-x" style="font-size:2.5rem;display:block;margin-bottom:8px;"></i>
+                        <p>暂无补货清单，点击“生成清单”自动创建</p>
+                    </div>
+                    <div class="shopping-list-wrap" id="shopping-list"></div>
+                </div>
+
+                <div id="add-item-section" class="section">
+                    <div class="section-title">
+                        <h5>添加物品</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="showSection('items-section')">
+                            <i class="bi bi-arrow-left"></i> 返回
+                        </button>
+                    </div>
+                    <div class="form-card">
+                        <form id="add-item-form">
+                            <div class="mb-3">
+                                <label class="form-label">物品名称 <span style="color:var(--danger);">*</span></label>
+                                <input type="text" class="form-control" name="name" required placeholder="如：抽纸、洗衣液...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">描述</label>
+                                <textarea class="form-control" name="description" rows="2" placeholder="可选，如品牌、规格等"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">所属家庭</label>
+                                <select class="form-select" name="family_id" id="add-family-select">
+                                    <option value="">未分组</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">单位</label>
+                                    <input type="text" class="form-control" name="unit" value="个" placeholder="个/包/瓶/kg">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">最低库存阈值</label>
+                                    <input type="number" step="0.1" class="form-control" name="min_quantity" value="0" placeholder="低于此值告警">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">物品图片</label>
+                                <input type="file" class="form-control" name="image" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary-gradient w-100">
+                                <i class="bi bi-plus-circle"></i> 保存物品
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="settings-section" class="section">
+                    <div class="section-title">
+                        <h5>系统设置</h5>
+                    </div>
+
+                    <div class="form-card mb-3">
+                        <h6 class="mb-3"><i class="bi bi-people"></i> 家庭管理</h6>
+                        <div id="settings-family-list" class="mb-3"></div>
+                        <form id="add-family-form" class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" id="new-family-name" required placeholder="新增家庭名称(如：公司/新家)">
+                            <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i></button>
+                        </form>
+                    </div>
+
+                    <div class="form-card mb-3">
+                        <h6 class="mb-3"><i class="bi bi-bell"></i> 通知渠道管理</h6>
+                        <div id="settings-channel-list" class="mb-3"></div>
+                        <form id="add-channel-form" class="row g-2">
+                            <div class="col-12">
+                                <input type="text" class="form-control form-control-sm" id="channel-name" required placeholder="渠道名称(如：PushPlus)">
+                            </div>
+                            <div class="col-10">
+                                <input type="text" class="form-control form-control-sm" id="channel-token" required placeholder="Token">
+                            </div>
+                            <div class="col-2">
+                                <button type="submit" class="btn btn-sm btn-primary-gradient w-100"><i class="bi bi-plus"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="form-card mb-3">
+                        <h6 class="mb-3"><i class="bi bi-key"></i> 开放 API Token</h6>
+                        <div id="settings-token-list" class="mb-3"></div>
+                        <form id="add-token-form" class="d-flex gap-2 mb-3">
+                            <input type="text" class="form-control form-control-sm" id="token-name" required placeholder="Token 用途说明">
+                            <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i> 创建</button>
+                        </form>
+                        <div class="text-center">
+                            <a href="/api_docs.html" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-code"></i> 查看 API 文档</a>
+                        </div>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- Settings Section -->
-    <div id="settings-section" class="section">
-        <div class="section-title">
-            <h5>系统设置</h5>
-        </div>
-        
-        <!-- Families Management -->
-        <div class="form-card mb-3">
-            <h6 class="mb-3"><i class="bi bi-people"></i> 家庭管理</h6>
-            <div id="settings-family-list" class="mb-3"></div>
-            <form id="add-family-form" class="d-flex gap-2">
-                <input type="text" class="form-control form-control-sm" id="new-family-name" required placeholder="新增家庭名称(如：公司/新家)">
-                <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i></button>
-            </form>
-        </div>
-
-        <!-- Notify Channels Management -->
-        <div class="form-card mb-3">
-            <h6 class="mb-3"><i class="bi bi-bell"></i> 通知渠道管理</h6>
-            <div id="settings-channel-list" class="mb-3"></div>
-            <form id="add-channel-form" class="row g-2">
-                <div class="col-12">
-                    <input type="text" class="form-control form-control-sm" id="channel-name" required placeholder="渠道名称(如：PushPlus)">
-                </div>
-                <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="channel-token" required placeholder="Token">
-                </div>
-                <div class="col-2">
-                    <button type="submit" class="btn btn-sm btn-primary-gradient w-100"><i class="bi bi-plus"></i></button>
-                </div>
-            </form>
-        </div>
-
-        <!-- API Token Management -->
-        <div class="form-card mb-3">
-            <h6 class="mb-3"><i class="bi bi-key"></i> 开放 API Token</h6>
-            <div id="settings-token-list" class="mb-3"></div>
-            <form id="add-token-form" class="d-flex gap-2 mb-3">
-                <input type="text" class="form-control form-control-sm" id="token-name" required placeholder="Token 用途说明">
-                <button type="submit" class="btn btn-sm btn-primary-gradient"><i class="bi bi-plus"></i> 创建</button>
-            </form>
-            <div class="text-center">
-                <a href="/api_docs.html" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark-code"></i> 查看 API 文档</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-btn active" onclick="showSection('dashboard-section', this)" id="nav-dashboard">
-            <i class="bi bi-house-door-fill"></i>
-            <span>首页</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('items-section', this)" id="nav-items">
-            <i class="bi bi-grid-fill"></i>
-            <span>物品</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('add-item-section', this)" id="nav-add">
-            <i class="bi bi-plus-circle-fill"></i>
-            <span>添加</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('settings-section', this)" id="nav-settings">
-            <i class="bi bi-gear-fill"></i>
-            <span>设置</span>
-        </button>
-    </div>
-
-    <!-- Purchase Modal -->
     <div class="modal fade" id="purchaseModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -724,13 +825,11 @@
                         <input type="hidden" id="purchase-item-id">
                         <div class="mb-3">
                             <label class="form-label">购买数量</label>
-                            <input type="number" step="0.01" class="form-control" id="purchase-qty" required
-                                placeholder="购买了多少">
+                            <input type="number" step="0.01" class="form-control" id="purchase-qty" required placeholder="购买了多少">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">总价 (¥)</label>
-                            <input type="number" step="0.01" class="form-control" id="purchase-price" required
-                                placeholder="花了多少钱">
+                            <input type="number" step="0.01" class="form-control" id="purchase-price" required placeholder="花了多少钱">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">购买凭证（图片）</label>
@@ -745,7 +844,6 @@
         </div>
     </div>
 
-    <!-- Usage Modal -->
     <div class="modal fade" id="usageModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -758,8 +856,7 @@
                         <input type="hidden" id="usage-item-id">
                         <div class="mb-3">
                             <label class="form-label">使用数量</label>
-                            <input type="number" step="0.01" class="form-control" id="usage-qty" required
-                                placeholder="使用了多少">
+                            <input type="number" step="0.01" class="form-control" id="usage-qty" required placeholder="使用了多少">
                         </div>
                         <button type="submit" class="btn btn-primary-gradient w-100">
                             <i class="bi bi-check-lg"></i> 保存使用记录
@@ -770,7 +867,6 @@
         </div>
     </div>
 
-    <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -807,8 +903,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">最低库存阈值</label>
-                            <input type="number" step="0.1" class="form-control" id="edit-min-quantity"
-                                placeholder="低于此值告警">
+                            <input type="number" step="0.1" class="form-control" id="edit-min-quantity" placeholder="低于此值告警">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">更换图片</label>
@@ -818,8 +913,7 @@
                             <button type="submit" class="btn btn-primary-gradient flex-grow-1">
                                 <i class="bi bi-check-lg"></i> 保存修改
                             </button>
-                            <button type="button" class="btn btn-danger-gradient" onclick="deleteItem()"
-                                style="padding: 12px 20px;">
+                            <button type="button" class="btn btn-danger-gradient" onclick="deleteItem()" style="padding: 12px 20px;">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -829,7 +923,33 @@
         </div>
     </div>
 
-    <!-- Purchase History Modal -->
+    <div class="modal fade" id="adjustModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-sliders"></i> 库存校准</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="adjust-form">
+                        <input type="hidden" id="adjust-item-id">
+                        <div class="mb-3">
+                            <label class="form-label">校准后库存</label>
+                            <input type="number" step="0.01" class="form-control" id="adjust-qty" required placeholder="输入实际库存">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">校准原因</label>
+                            <input type="text" class="form-control" id="adjust-reason" placeholder="例如：盘点修正、损耗修正">
+                        </div>
+                        <button type="submit" class="btn btn-primary-gradient w-100">
+                            <i class="bi bi-check-lg"></i> 保存校准
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="historyModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -837,14 +957,11 @@
                     <h5 class="modal-title"><i class="bi bi-clock-history"></i> 购买记录</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0" id="history-list">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="modal-body p-0" id="history-list"></div>
             </div>
         </div>
     </div>
 
-    <!-- Usage History Modal -->
     <div class="modal fade" id="usageHistoryModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -852,14 +969,11 @@
                     <h5 class="modal-title"><i class="bi bi-card-list"></i> 使用记录</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0" id="usage-history-list">
-                    <!-- Populated by JS -->
-                </div>
+                <div class="modal-body p-0" id="usage-history-list"></div>
             </div>
         </div>
     </div>
 
-    <!-- Image Preview Modal -->
     <div class="modal fade" id="imagePreviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content" style="background:transparent; border:none; box-shadow:none;">
@@ -876,8 +990,8 @@
         const API_URL = '/api';
         let allItems = [];
         let currentFamilyId = 0;
+        let shoppingItems = [];
 
-        // ---- Toast Notification ----
         function showToast(msg) {
             const c = document.getElementById('toast-container');
             const t = document.createElement('div');
@@ -887,23 +1001,19 @@
             setTimeout(() => t.remove(), 2500);
         }
 
-
-        // JS features extension
         async function loadFamilies() {
             try {
                 const res = await fetch(`${API_URL}/families`);
                 const families = await res.json();
-                
-                // Header Select
+
                 const hSelect = document.getElementById('header-family-select');
                 if (hSelect) {
-                    hSelect.innerHTML = '<option value="0" style="color: black;">全部家庭</option>';
+                    hSelect.innerHTML = '<option value="0">全部家庭</option>';
                     families.forEach(f => {
-                        hSelect.innerHTML += `<option value="${f.id}" style="color: black;" ${currentFamilyId === f.id ? 'selected':''}>${f.name}</option>`;
+                        hSelect.innerHTML += `<option value="${f.id}" ${currentFamilyId === f.id ? 'selected' : ''}>${f.name}</option>`;
                     });
                 }
-                
-                // Add/Edit Selects
+
                 const aSelect = document.getElementById('add-family-select');
                 const eSelect = document.getElementById('edit-family-select');
                 if (aSelect) {
@@ -914,8 +1024,7 @@
                     eSelect.innerHTML = '<option value="">未分组</option>';
                     families.forEach(f => eSelect.innerHTML += `<option value="${f.id}">${f.name}</option>`);
                 }
-                
-                // Settings List
+
                 const sList = document.getElementById('settings-family-list');
                 if (sList) {
                     sList.innerHTML = '';
@@ -935,14 +1044,13 @@
                 console.error('Load families error:', e);
             }
         }
-        
+
         function onFamilyChange() {
             currentFamilyId = parseInt(document.getElementById('header-family-select').value);
             loadDashboard();
             loadItems();
         }
-        
-        // Family forms
+
         if (document.getElementById('add-family-form')) {
             document.getElementById('add-family-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -952,22 +1060,29 @@
                     const res = await fetch(`${API_URL}/families`, { method: 'POST', body: formData });
                     if (res.ok) {
                         document.getElementById('add-family-form').reset();
-                        showToast('✅ 家庭添加成功');
+                        showToast('家庭添加成功');
                         await loadFamilies();
                     }
-                } catch (err) {}
+                } catch (err) { }
             });
         }
-        
+
         async function deleteFamily(id) {
-            if(!confirm('确定删除此家庭？该家庭关联会丢失。')) return;
+            if (!confirm('确定删除此家庭？该家庭关联会丢失。')) return;
             try {
                 const res = await fetch(`${API_URL}/families/${id}`, { method: 'DELETE' });
-                if(res.ok) { showToast('✅ 家庭已删除'); if(currentFamilyId === id) { currentFamilyId = 0; onFamilyChange(); } else { loadFamilies(); } }
-            } catch(e){}
+                if (res.ok) {
+                    showToast('家庭已删除');
+                    if (currentFamilyId === id) {
+                        currentFamilyId = 0;
+                        onFamilyChange();
+                    } else {
+                        loadFamilies();
+                    }
+                }
+            } catch (e) { }
         }
 
-        // Channels
         async function loadChannels() {
             try {
                 const res = await fetch(`${API_URL}/notify-channels`);
@@ -983,7 +1098,7 @@
                                 <div><span class="fw-bold">${c.name}</span> (${c.channel_type}) ${status}</div>
                                 <div>
                                     <button class="btn btn-sm text-info" onclick="testChannel(${c.id})"><i class="bi bi-send"></i></button>
-                                    <button class="btn btn-sm ${c.enabled?'text-warning':'text-success'}" onclick="toggleChannel(${c.id}, ${!c.enabled})"><i class="bi ${c.enabled?'bi-pause-circle':'bi-play-circle'}"></i></button>
+                                    <button class="btn btn-sm ${c.enabled ? 'text-warning' : 'text-success'}" onclick="toggleChannel(${c.id}, ${!c.enabled})"><i class="bi ${c.enabled ? 'bi-pause-circle' : 'bi-play-circle'}"></i></button>
                                     <button class="btn btn-sm text-danger" onclick="deleteChannel(${c.id})"><i class="bi bi-trash"></i></button>
                                 </div>
                             </div>
@@ -991,50 +1106,58 @@
                         </div>
                     `;
                 });
-            } catch(e){}
+            } catch (e) { }
         }
-        
+
         if (document.getElementById('add-channel-form')) {
             document.getElementById('add-channel-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData();
                 formData.append('name', document.getElementById('channel-name').value);
                 formData.append('channel_type', 'pushplus');
-                formData.append('config', JSON.stringify({token: document.getElementById('channel-token').value}));
+                formData.append('config', JSON.stringify({ token: document.getElementById('channel-token').value }));
                 try {
                     const res = await fetch(`${API_URL}/notify-channels`, { method: 'POST', body: formData });
-                    if(res.ok) {
+                    if (res.ok) {
                         document.getElementById('add-channel-form').reset();
-                        showToast('✅ 渠道添加成功');
+                        showToast('渠道添加成功');
                         loadChannels();
                     }
-                } catch(e){}
+                } catch (e) { }
             });
         }
 
         async function toggleChannel(id, enabled) {
-            const formData = new FormData(); formData.append('enabled', enabled);
+            const formData = new FormData();
+            formData.append('enabled', enabled);
             try {
                 const res = await fetch(`${API_URL}/notify-channels/${id}`, { method: 'PUT', body: formData });
-                if(res.ok) { showToast('✅ 状态已更新'); loadChannels(); }
-            } catch(e){}
+                if (res.ok) {
+                    showToast('状态已更新');
+                    loadChannels();
+                }
+            } catch (e) { }
         }
+
         async function testChannel(id) {
             try {
                 const res = await fetch(`${API_URL}/notify-channels/${id}/test`, { method: 'POST' });
-                if(res.ok) showToast('✅ 测试消息已推送');
-                else showToast('❌ 测试发送失败');
-            } catch(e){}
-        }
-        async function deleteChannel(id) {
-            if(!confirm('确定删除?')) return;
-            try {
-                const res = await fetch(`${API_URL}/notify-channels/${id}`, { method: 'DELETE' });
-                if(res.ok) { showToast('✅ 渠道已删除'); loadChannels(); }
-            } catch(e){}
+                if (res.ok) showToast('测试消息已推送');
+                else showToast('测试发送失败');
+            } catch (e) { }
         }
 
-        // Tokens
+        async function deleteChannel(id) {
+            if (!confirm('确定删除?')) return;
+            try {
+                const res = await fetch(`${API_URL}/notify-channels/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('渠道已删除');
+                    loadChannels();
+                }
+            } catch (e) { }
+        }
+
         async function loadTokens() {
             try {
                 const res = await fetch(`${API_URL}/tokens`);
@@ -1057,9 +1180,9 @@
                         </div>
                     `;
                 });
-            } catch(e){}
+            } catch (e) { }
         }
-        
+
         function toggleTokenVisibility(id) {
             const input = document.getElementById(`token-input-${id}`);
             const icon = document.getElementById(`token-eye-${id}`);
@@ -1075,12 +1198,12 @@
         async function copyToken(text) {
             try {
                 await navigator.clipboard.writeText(text);
-                showToast('✅ Token已复制');
+                showToast('Token已复制');
             } catch (err) {
-                showToast('❌ 复制失败');
+                showToast('复制失败');
             }
         }
-        
+
         if (document.getElementById('add-token-form')) {
             document.getElementById('add-token-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1088,39 +1211,40 @@
                 formData.append('name', document.getElementById('token-name').value);
                 try {
                     const res = await fetch(`${API_URL}/tokens`, { method: 'POST', body: formData });
-                    if(res.ok) {
-                        const data = await res.json();
+                    if (res.ok) {
                         document.getElementById('add-token-form').reset();
-                        showToast('✅ Token 创建成功');
+                        showToast('Token 创建成功');
                         loadTokens();
                     }
-                } catch(e){}
+                } catch (e) { }
             });
         }
-        
+
         async function deleteToken(id) {
-            if(!confirm('确定删除此Token? 关联API将失效。')) return;
+            if (!confirm('确定删除此Token? 关联API将失效。')) return;
             try {
                 const res = await fetch(`${API_URL}/tokens/${id}`, { method: 'DELETE' });
-                if(res.ok) { showToast('✅ Token已删除'); loadTokens(); }
-            } catch(e){}
+                if (res.ok) {
+                    showToast('Token已删除');
+                    loadTokens();
+                }
+            } catch (e) { }
         }
 
-        // Usage history
         let usageHistoryModal = null;
         document.addEventListener('DOMContentLoaded', () => {
             usageHistoryModal = new bootstrap.Modal(document.getElementById('usageHistoryModal'));
         });
-        
+
         async function openUsageHistoryModal(itemId) {
             const list = document.getElementById('usage-history-list');
-            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
+            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-soft);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
             if (usageHistoryModal) usageHistoryModal.show();
             try {
                 const res = await fetch(`${API_URL}/items/${itemId}/usages`);
                 const usages = await res.json();
                 if (usages.length === 0) {
-                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无使用记录</div>';
+                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-soft);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无使用记录</div>';
                     return;
                 }
                 list.innerHTML = usages.map(u => `
@@ -1129,12 +1253,11 @@
                         <div class="text-muted mt-1 w-100 text-start" style="font-size: 0.8rem;"><i class="bi bi-clock"></i> ${u.date}</div>
                     </div>
                 `).join('');
-            } catch(e) {
+            } catch (e) {
                 list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--danger);">加载失败</div>';
             }
         }
 
-        // ---- Navigation ----
         function showSection(sectionId, navElement = null) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
@@ -1143,10 +1266,10 @@
             if (navElement) {
                 navElement.classList.add('active');
             } else {
-            if(sectionId === 'settings-section') { loadFamilies(); loadChannels(); loadTokens(); }
                 const mapping = {
                     'dashboard-section': 'nav-dashboard',
                     'items-section': 'nav-items',
+                    'shopping-section': 'nav-shopping',
                     'add-item-section': 'nav-add',
                     'settings-section': 'nav-settings',
                 };
@@ -1156,9 +1279,14 @@
 
             if (sectionId === 'dashboard-section') loadDashboard();
             if (sectionId === 'items-section') loadItems();
+            if (sectionId === 'shopping-section') loadShoppingList();
+            if (sectionId === 'settings-section') {
+                loadFamilies();
+                loadChannels();
+                loadTokens();
+            }
         }
 
-        // ---- Dashboard ----
         async function loadDashboard() {
             try {
                 const res = await fetch(`${API_URL}/dashboard` + (currentFamilyId > 0 ? `?family_id=${currentFamilyId}` : ''));
@@ -1175,16 +1303,14 @@
                     panel.style.display = 'block';
                     if (badgeDot) badgeDot.style.display = 'block';
                     list.innerHTML = data.low_stock_items.map(item => `
-                <div class="alert-item">
-                    <div class="alert-icon"><i class="bi bi-exclamation-lg"></i></div>
-                    <div class="alert-info">
-                        <div class="alert-name">${item.name}</div>
-                        <div class="alert-detail">
-                            剩余 ${item.current_quantity} ${item.unit} / 阈值 ${item.min_quantity} ${item.unit}
+                        <div class="alert-item">
+                            <div class="alert-icon"><i class="bi bi-exclamation-lg"></i></div>
+                            <div>
+                                <div class="alert-name">${item.name}</div>
+                                <div class="alert-detail">剩余 ${item.current_quantity} ${item.unit} / 阈值 ${item.min_quantity} ${item.unit}</div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
                 } else {
                     panel.style.display = 'none';
                     if (badgeDot) badgeDot.style.display = 'none';
@@ -1194,7 +1320,6 @@
             }
         }
 
-        // ---- Items ----
         async function loadItems() {
             try {
                 const res = await fetch(`${API_URL}/items` + (currentFamilyId > 0 ? `?family_id=${currentFamilyId}` : ''));
@@ -1231,42 +1356,113 @@
                 const cardClass = item.is_low ? 'item-card low-stock' : 'item-card';
 
                 return `
-        <div class="col-6 col-md-4">
-            <div class="${cardClass}">
-                <div class="card-img-wrap" onclick="previewImage('${item.image_url || ''}')">${img}</div>
-                <div class="card-content">
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-info">
-                        <span class="${qtyClass}">库存：${item.current_quantity} ${item.unit}</span><br>
-                        单价：¥${item.latest_unit_price}<br>
-                        ${item.last_purchase_date ? '上次购买：' + item.last_purchase_date.split(' ')[0] : '暂无购买记录'}
-                        <br>
-                        ${item.last_usage_date ? '上次使用：' + item.last_usage_date.split(' ')[0] : '暂无使用记录'}
+                <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+                    <div class="${cardClass}">
+                        <div class="card-img-wrap" onclick="previewImage('${item.image_url || ''}')">${img}</div>
+                        <div class="card-content">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-info">
+                                <span class="${qtyClass}">库存：${item.current_quantity} ${item.unit}</span><br>
+                                单价：¥${item.latest_unit_price}<br>
+                                ${item.last_purchase_date ? '上次购买：' + item.last_purchase_date.split(' ')[0] : '暂无购买记录'}<br>
+                                ${item.last_usage_date ? '上次使用：' + item.last_usage_date.split(' ')[0] : '暂无使用记录'}
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-outline-success btn-sm" onclick="openPurchaseModal(${item.id})" title="购买"><i class="bi bi-cart-plus"></i></button>
+                                <button class="btn btn-outline-warning btn-sm" onclick="openUsageModal(${item.id})" title="使用"><i class="bi bi-dash-circle"></i></button>
+                                <button class="btn btn-outline-dark btn-sm" onclick="openAdjustModal(${item.id}, ${item.current_quantity})" title="校准"><i class="bi bi-sliders"></i></button>
+                                <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${item.id})" title="编辑"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-outline-info btn-sm" onclick="openHistoryModal(${item.id})" title="购买记录"><i class="bi bi-clock-history"></i></button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="openUsageHistoryModal(${item.id})" title="使用记录"><i class="bi bi-card-list"></i></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="item-actions">
-                        <button class="btn btn-outline-success btn-sm" onclick="openPurchaseModal(${item.id})" title="购买">
-                            <i class="bi bi-cart-plus"></i>
-                        </button>
-                        <button class="btn btn-outline-warning btn-sm" onclick="openUsageModal(${item.id})" title="使用">
-                            <i class="bi bi-dash-circle"></i>
-                        </button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="openEditModal(${item.id})" title="编辑">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-outline-info btn-sm" onclick="openHistoryModal(${item.id})" title="购买记录">
-                            <i class="bi bi-clock-history"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="openUsageHistoryModal(${item.id})" title="使用记录">
-                            <i class="bi bi-card-list"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>`;
+                </div>`;
             }).join('');
         }
 
-        // ---- Image Preview ----
+        async function generateShoppingList() {
+            const formData = new FormData();
+            if (currentFamilyId > 0) formData.append('family_id', currentFamilyId);
+            formData.append('lookback_days', '30');
+            formData.append('coverage_days', '14');
+            try {
+                const res = await fetch(`${API_URL}/shopping-list/generate`, { method: 'POST', body: formData });
+                if (!res.ok) {
+                    const data = await res.json();
+                    showToast(data.detail || '生成失败');
+                    return;
+                }
+                const data = await res.json();
+                showToast(`已生成 ${data.count} 项补货建议`);
+                loadShoppingList();
+            } catch (e) {
+                showToast('网络错误');
+            }
+        }
+
+        async function loadShoppingList() {
+            try {
+                const query = new URLSearchParams();
+                if (currentFamilyId > 0) query.set('family_id', String(currentFamilyId));
+                const suffix = query.toString() ? `?${query.toString()}` : '';
+                const res = await fetch(`${API_URL}/shopping-list${suffix}`);
+                shoppingItems = await res.json();
+                renderShoppingList(shoppingItems);
+            } catch (e) {
+                showToast('加载补货清单失败');
+            }
+        }
+
+        function renderShoppingList(items) {
+            const wrap = document.getElementById('shopping-list');
+            const empty = document.getElementById('shopping-empty');
+            if (!items || items.length === 0) {
+                wrap.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+            wrap.innerHTML = items.map(item => {
+                const badgeCls = item.status === 'pending' ? 'bg-warning text-dark' : (item.status === 'purchased' ? 'bg-success' : 'bg-secondary');
+                const statusText = item.status === 'pending' ? '待购买' : (item.status === 'purchased' ? '已购买' : '已忽略');
+                return `
+                    <div class="shopping-item">
+                        <div>
+                            <div class="title">${item.item_name || '-'}</div>
+                            <div class="meta">当前库存 ${item.current_quantity} ${item.unit} / 阈值 ${item.min_quantity} ${item.unit}</div>
+                            <div class="meta">建议购买 ${item.suggested_quantity} ${item.unit} · 预估 ¥${item.estimated_cost}</div>
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            <span class="badge ${badgeCls}">${statusText}</span>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-success" onclick="updateShoppingItem(${item.id}, 'purchased')">买了</button>
+                                <button class="btn btn-outline-warning" onclick="updateShoppingItem(${item.id}, 'pending')">待买</button>
+                                <button class="btn btn-outline-secondary" onclick="updateShoppingItem(${item.id}, 'ignored')">忽略</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function updateShoppingItem(id, status) {
+            const formData = new FormData();
+            formData.append('status', status);
+            try {
+                const res = await fetch(`${API_URL}/shopping-list/${id}`, { method: 'PUT', body: formData });
+                if (!res.ok) {
+                    const data = await res.json();
+                    showToast(data.detail || '更新失败');
+                    return;
+                }
+                showToast('补货清单已更新');
+                loadShoppingList();
+            } catch (e) {
+                showToast('网络错误');
+            }
+        }
+
         const imagePreviewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
         function previewImage(url) {
             if (!url) return;
@@ -1274,7 +1470,6 @@
             imagePreviewModal.show();
         }
 
-        // ---- Add Item ----
         document.getElementById('add-item-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -1282,17 +1477,16 @@
                 const res = await fetch(`${API_URL}/items`, { method: 'POST', body: formData });
                 if (res.ok) {
                     e.target.reset();
-                    showToast('✅ 物品添加成功');
+                    showToast('物品添加成功');
                     showSection('items-section');
                 } else {
-                    showToast('❌ 添加失败');
+                    showToast('添加失败');
                 }
             } catch (err) {
-                showToast('❌ 网络错误');
+                showToast('网络错误');
             }
         });
 
-        // ---- Purchase ----
         const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
         function openPurchaseModal(itemId) {
             document.getElementById('purchase-item-id').value = itemId;
@@ -1314,17 +1508,16 @@
                 const res = await fetch(`${API_URL}/purchases`, { method: 'POST', body: formData });
                 if (res.ok) {
                     purchaseModal.hide();
-                    showToast('✅ 购买记录已添加');
+                    showToast('购买记录已添加');
                     loadItems();
                 } else {
-                    showToast('❌ 添加失败');
+                    showToast('添加失败');
                 }
             } catch (err) {
-                showToast('❌ 网络错误');
+                showToast('网络错误');
             }
         });
 
-        // ---- Usage ----
         const usageModal = new bootstrap.Modal(document.getElementById('usageModal'));
         function openUsageModal(itemId) {
             document.getElementById('usage-item-id').value = itemId;
@@ -1343,21 +1536,21 @@
                 const res = await fetch(`${API_URL}/usages`, { method: 'POST', body: formData });
                 if (res.ok) {
                     usageModal.hide();
-                    showToast('✅ 使用记录已添加');
+                    showToast('使用记录已添加');
                     loadItems();
                     loadDashboard();
                 } else {
                     const data = await res.json();
-                    showToast(`❌ ${data.detail || '操作失败'}`);
+                    showToast(`${data.detail || '操作失败'}`);
                 }
             } catch (err) {
-                showToast('❌ 网络错误');
+                showToast('网络错误');
             }
         });
 
-        // ---- Edit ----
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         let currentEditId = null;
+        const adjustModal = new bootstrap.Modal(document.getElementById('adjustModal'));
 
         async function openEditModal(itemId) {
             currentEditId = itemId;
@@ -1373,7 +1566,7 @@
                 document.getElementById('edit-min-quantity').value = item.min_quantity;
                 editModal.show();
             } catch (err) {
-                showToast('❌ 获取物品信息失败');
+                showToast('获取物品信息失败');
             }
         }
 
@@ -1393,14 +1586,14 @@
                 const res = await fetch(`${API_URL}/items/${currentEditId}`, { method: 'PUT', body: formData });
                 if (res.ok) {
                     editModal.hide();
-                    showToast('✅ 物品已更新');
+                    showToast('物品已更新');
                     loadItems();
                     loadDashboard();
                 } else {
-                    showToast('❌ 更新失败');
+                    showToast('更新失败');
                 }
             } catch (err) {
-                showToast('❌ 网络错误');
+                showToast('网络错误');
             }
         });
 
@@ -1410,23 +1603,52 @@
                 const res = await fetch(`${API_URL}/items/${currentEditId}`, { method: 'DELETE' });
                 if (res.ok) {
                     editModal.hide();
-                    showToast('✅ 物品已删除');
+                    showToast('物品已删除');
                     loadItems();
                     loadDashboard();
                 } else {
-                    showToast('❌ 删除失败');
+                    showToast('删除失败');
                 }
             } catch (err) {
-                showToast('❌ 网络错误');
+                showToast('网络错误');
             }
         }
 
-        // ---- Purchase History ----
+        function openAdjustModal(itemId, currentQty) {
+            document.getElementById('adjust-item-id').value = itemId;
+            document.getElementById('adjust-qty').value = currentQty;
+            document.getElementById('adjust-reason').value = '';
+            adjustModal.show();
+        }
+
+        document.getElementById('adjust-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const itemId = document.getElementById('adjust-item-id').value;
+            const formData = new FormData();
+            formData.append('adjusted_quantity', document.getElementById('adjust-qty').value);
+            formData.append('reason', document.getElementById('adjust-reason').value);
+            try {
+                const res = await fetch(`${API_URL}/items/${itemId}/adjust`, { method: 'PUT', body: formData });
+                if (!res.ok) {
+                    const data = await res.json();
+                    showToast(data.detail || '校准失败');
+                    return;
+                }
+                adjustModal.hide();
+                showToast('库存校准成功');
+                loadItems();
+                loadDashboard();
+                loadShoppingList();
+            } catch (err) {
+                showToast('网络错误');
+            }
+        });
+
         const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
 
         async function openHistoryModal(itemId) {
             const list = document.getElementById('history-list');
-            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
+            list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-soft);"><i class="bi bi-hourglass-split"></i> 加载中...</div>';
             historyModal.show();
 
             try {
@@ -1434,7 +1656,7 @@
                 const purchases = await res.json();
 
                 if (purchases.length === 0) {
-                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-muted);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无购买记录</div>';
+                    list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--text-soft);"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px;"></i>暂无购买记录</div>';
                     return;
                 }
 
@@ -1443,23 +1665,20 @@
                         ? `<img src="${p.image_url}" alt="购买凭证" onclick="previewImage('${p.image_url}')" style="cursor:pointer;">`
                         : '';
                     return `
-                <div class="purchase-item">
-                    ${imgHtml}
-                    <div class="purchase-info">
-                        <div class="purchase-date">${p.date}</div>
-                        <div class="purchase-detail">
-                            数量：${p.quantity} &nbsp;|&nbsp; 总价：¥${p.price} &nbsp;|&nbsp; 单价：¥${p.unit_price}
+                        <div class="purchase-item">
+                            ${imgHtml}
+                            <div class="purchase-info">
+                                <div class="purchase-date">${p.date}</div>
+                                <div class="purchase-detail">数量：${p.quantity} | 总价：¥${p.price} | 单价：¥${p.unit_price}</div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
+                    `;
                 }).join('');
             } catch (err) {
                 list.innerHTML = '<div style="padding:30px; text-align:center; color:var(--danger);">加载失败</div>';
             }
         }
 
-        // ---- Manual Inventory Check ----
         async function manualCheckInventory() {
             const btn = document.getElementById('push-btn');
             btn.disabled = true;
@@ -1469,15 +1688,18 @@
                 const data = await res.json();
                 showToast(data.message);
             } catch (err) {
-                showToast('❌ 推送失败');
+                showToast('推送失败');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-bell"></i> 推送通知';
             }
         }
 
-        // ---- Init ----
-        loadFamilies().then(() => { loadDashboard(); loadItems(); });
+        loadFamilies().then(() => {
+            loadDashboard();
+            loadItems();
+            loadShoppingList();
+        });
         loadChannels();
         loadTokens();
     </script>

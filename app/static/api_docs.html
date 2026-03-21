@@ -70,6 +70,47 @@
                 <li><code>family_id</code> (可选): 过滤指定家庭下的物品</li>
             </ul>
         </div>
+
+        <div class="api-card">
+            <h5><span class="method-badge method-get">GET</span> <code>/openapi/families</code></h5>
+            <p>获取家庭列表（适合快捷指令第一层菜单）。</p>
+        </div>
+
+        <div class="api-card">
+            <h5><span class="method-badge method-get">GET</span> <code>/openapi/shortcut/menu</code></h5>
+            <p>获取快捷录入菜单数据，包含动作、家庭和物品（支持 <code>family_id</code> 过滤物品）。</p>
+            <strong>返回示例:</strong>
+            <div class="code-block">{
+  "actions": [{"value":"purchase","label":"补货"},{"value":"usage","label":"使用"}],
+  "families": [{"id":1,"name":"家里","item_count":6}],
+  "items": [{"id":3,"name":"抽纸","family_id":1,"unit":"包","current_quantity":2}]
+}</div>
+        </div>
+
+        <div class="api-card">
+            <h5><span class="method-badge method-post">POST</span> <code>/openapi/quick-entry</code></h5>
+            <p>快捷统一录入接口（快捷指令建议优先调用它）。</p>
+            <strong>请求 Body (JSON):</strong>
+            <div class="code-block">{
+  "action": "purchase",         // purchase 或 usage
+  "family_id": 1,               // 可选
+  "item_id": 3,                 // 推荐使用
+  "quantity": 4,
+  "price": 22.5,                // action=purchase 必填
+  "note": "快捷指令录入"
+}</div>
+        </div>
+
+        <div class="api-card">
+            <h5><i class="bi bi-phone"></i> iPhone 快捷指令推荐流程</h5>
+            <ol>
+                <li>调用 <code>GET /openapi/families</code>，让用户选择家庭。</li>
+                <li>调用 <code>GET /openapi/items?family_id=选中家庭</code>，让用户选择物品。</li>
+                <li>菜单选择动作（补货/使用），并让用户输入数量；补货时再输入金额。</li>
+                <li>调用 <code>POST /openapi/quick-entry</code> 提交记录。</li>
+                <li>展示返回结果中的 <code>current_quantity</code> 作为成功提示。</li>
+            </ol>
+        </div>
     </div>
 </body>
 </html>
